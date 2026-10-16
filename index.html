@@ -7,85 +7,146 @@
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; }
+    :root { --glass: rgba(15,23,42,.8); --line: rgba(255,255,255,.14); --gold: #fbbf24; }
+    * { -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: "Segoe UI", Roboto, Arial, sans-serif; }
     a-scene { position: fixed; inset: 0; }
-
-    .hud { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%);
-           box-sizing: border-box; max-width: calc(100% - 24px); color: #fff;
-           background: rgba(15, 23, 42, 0.80); border-radius: 14px; text-align: center; }
-
-    #huongdan { top: 12px; padding: 10px 14px; font-size: 14px; line-height: 1.4;
-                width: max-content; pointer-events: none; transition: opacity .3s; }
-    #tieude { top: 12px; padding: 8px 16px; font-size: 16px; font-weight: bold;
-              color: #fbbf24; letter-spacing: 1px; display: none; pointer-events: none; }
-
-    #panel { bottom: 12px; width: 460px; padding: 10px 12px; display: none; }
-    #thongtin { font-size: 14px; line-height: 1.45; min-height: 40px; margin-bottom: 8px; }
-    #thutu { font-size: 15px; font-weight: bold; color: #fbbf24; min-height: 20px; margin-bottom: 8px; }
-    .hang { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-    button { border: 0; border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: bold;
-             color: #fff; background: #2563eb; cursor: pointer; }
-    button:active { background: #1d4ed8; }
-    button.phu { background: #475569; }
-
-    .chuthich { font-size: 12px; margin-bottom: 8px; }
-    .cham { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 8px; }
+    .hud { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%); box-sizing: border-box; max-width: calc(100% - 24px);
+           color: #f1f5f9; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+           border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+    #huongdan { top: 12px; padding: 10px 16px; font-size: 14px; line-height: 1.4; text-align: center; width: max-content; pointer-events: none; }
+    #huongdan.loi { background: rgba(185,28,28,.94); }
+    #tieude { top: 12px; padding: 7px 18px; font-size: 15px; font-weight: 800; letter-spacing: 2px; color: var(--gold); display: none; pointer-events: none; }
+    #toast { top: 58px; padding: 8px 14px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 30; background: rgba(30,41,59,.96); }
+    #toast.on { opacity: 1; }
+    #panel { bottom: 10px; width: 480px; padding: 8px 12px 12px; display: none; max-height: 56vh; overflow-y: auto; }
+    .top { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .tabs { display: flex; gap: 4px; flex: 1; background: rgba(255,255,255,.07); padding: 3px; border-radius: 12px; }
+    .tabs button { flex: 1; padding: 7px 2px; font-size: 12px; background: transparent; box-shadow: none; color: #cbd5e1; }
+    .tabs button.on { background: linear-gradient(135deg,#f59e0b,#fbbf24); color: #0f172a; }
+    #thu { padding: 7px 11px; }
+    .chuthich { font-size: 12px; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; color: #cbd5e1; }
+    .cham { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+    #thongtin { font-size: 14px; line-height: 1.5; min-height: 40px; margin-bottom: 6px; }
+    #code { display: none; text-align: left; font: 13px/1.55 ui-monospace, Consolas, monospace; background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; margin-bottom: 6px; overflow-x: auto; }
+    #code .t { display: block; padding: 0 10px; white-space: pre; }
+    #code .t.act { background: var(--gold); color: #0f172a; font-weight: bold; }
+    #code .cm { color: #94a3b8; font-size: 11px; padding: 0 10px 4px; display: block; }
+    #stack { display: none; font-size: 12px; color: #fb923c; margin-bottom: 6px; word-break: break-word; }
+    #thutu { font-size: 15px; font-weight: bold; color: var(--gold); min-height: 20px; margin-bottom: 4px; }
+    .hang { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    button { border: 0; border-radius: 12px; padding: 9px 13px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit;
+             background: linear-gradient(135deg,#3b82f6,#6366f1); box-shadow: 0 2px 8px rgba(0,0,0,.25); transition: transform .12s, opacity .2s; }
+    button:active { transform: scale(.94); }
+    button:disabled { opacity: .35; pointer-events: none; }
+    button.phu { background: #475569; } button.dovui { background: linear-gradient(135deg,#16a34a,#22c55e); }
+    button.nguy { background: linear-gradient(135deg,#dc2626,#f43f5e); }
+    label { font-size: 12px; } #tocdo { width: 80px; vertical-align: middle; }
+    #mcq, #quizbar { top: 12px; width: 460px; padding: 12px 14px; display: none; font-size: 14px; line-height: 1.45; max-height: 70vh; overflow-y: auto; }
+    .mhead { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; font-weight: 700; }
+    .bar { height: 5px; background: rgba(255,255,255,.12); border-radius: 5px; margin: 6px 0 10px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#22d3ee,#a78bfa); transition: width .35s; }
+    #mtext { font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+    .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 6px; background: rgba(255,255,255,.08); box-shadow: none; border: 1px solid var(--line); font-weight: 600; }
+    .opt b { display: inline-flex; width: 24px; height: 24px; flex: none; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.15); }
+    .opt:disabled { opacity: 1; } .opt.ok { background: rgba(34,197,94,.3); border-color: #22c55e; } .opt.bad { background: rgba(239,68,68,.3); border-color: #ef4444; }
+    #mwhy { display: none; font-size: 13px; background: rgba(255,255,255,.07); border-radius: 10px; padding: 8px 10px; margin-top: 4px; }
+    #qthutu { font-weight: bold; color: var(--gold); min-height: 18px; }
   </style>
 </head>
 <body>
   <div id="huongdan" class="hud">Đưa camera hướng vào ảnh đích, giữ ảnh trong khung hình</div>
   <div id="tieude" class="hud">CÂY NHỊ PHÂN</div>
+  <div id="toast" class="hud"></div>
 
-  <div id="panel" class="hud">
-    <div class="chuthich">
-      <span class="cham" style="background:#ef4444"></span>Gốc
-      <span class="cham" style="background:#3b82f6"></span>Nút trong
-      <span class="cham" style="background:#22c55e"></span>Lá
-    </div>
-    <div id="thongtin">Chạm vào một nút để xem thông tin.</div>
-    <div id="thutu"></div>
+  <!-- Trắc nghiệm -->
+  <div id="mcq" class="hud">
+    <div class="mhead"><span id="mno"></span><span id="mscore"></span></div>
+    <div class="bar"><i id="mbar"></i></div>
+    <div id="mtext"></div><div id="mopts"></div><div id="mwhy"></div>
+    <div class="hang"><button id="mnext" style="display:none"></button><button class="phu" onclick="thoatQuiz()">Thoát</button></div>
+  </div>
+
+  <!-- Đố chạm đúng thứ tự -->
+  <div id="quizbar" class="hud">
+    <div id="qtext"></div><div id="qthutu"></div>
     <div class="hang">
-      <button onclick="duyet('NLR')">Tiền tự (NLR)</button>
-      <button onclick="duyet('LNR')">Trung tự (LNR)</button>
-      <button onclick="duyet('LRN')">Hậu tự (LRN)</button>
-      <button class="phu" onclick="datLai()">Đặt lại</button>
+      <button class="phu" onclick="goiY()">💡 Gợi ý (-1 điểm)</button>
+      <button class="dovui" onclick="batDauDoVui()">Đề khác</button>
+      <button class="phu" onclick="thoatQuiz()">Thoát</button>
     </div>
   </div>
 
-  <!--
-    maxTrack: 1  -> chỉ theo dõi 1 ảnh
-    filterMinCF  -> càng NHỎ càng mượt (ít rung) khi ảnh đứng yên
-    filterBeta   -> càng NHỎ càng mượt nhưng trễ hơn khi di chuyển nhanh
-    warmupTolerance / missTolerance -> tăng để ít nhận nhầm / ít mất bám
-  -->
+  <div id="panel" class="hud">
+    <div class="top">
+      <div class="tabs">
+        <button id="b-kp" onclick="tab('kp')">🔍 Khám phá</button><button id="b-duyet" onclick="tab('duyet')">▶ Duyệt</button>
+        <button id="b-sua" onclick="tab('sua')">✏️ Sửa cây</button><button id="b-quiz" onclick="tab('quiz')">📝 Quiz</button>
+      </div>
+      <button id="thu" class="phu" onclick="thuGon()">▾</button>
+    </div>
+    <div id="noidung">
+      <div class="chuthich">
+        <span><i class="cham" style="background:#ef4444"></i>Gốc</span><span><i class="cham" style="background:#3b82f6"></i>Nút trong</span>
+        <span><i class="cham" style="background:#22c55e"></i>Lá</span><span><i class="cham" style="background:#a78bfa"></i>Đã thăm</span>
+      </div>
+      <div id="thongtin"></div>
+      <div id="code"></div><div id="stack"></div><div id="thutu"></div>
+
+      <div id="t-kp">
+        <div class="hang">
+          <button onclick="hienCayCon('left')">🌿 Cây con trái</button><button onclick="hienCayCon('right')">🌸 Cây con phải</button>
+          <button onclick="hienCode(maGia('NLR'))" class="phu">📜 Xem mã giả</button>
+        </div>
+      </div>
+      <div id="t-duyet">
+        <div class="hang">
+          <button onclick="batDauDuyet('NLR')">Tiền tự</button><button onclick="batDauDuyet('LNR')">Trung tự</button><button onclick="batDauDuyet('LRN')">Hậu tự</button>
+        </div>
+        <div class="hang">
+          <button id="btnChay" class="phu" onclick="chayTamDung()">⏸ Tạm dừng</button><button class="phu" onclick="buocTiep()">⏭ Bước tiếp</button>
+          <label>Chậm <input type="range" id="tocdo" min="1" max="5" value="3"> Nhanh</label>
+        </div>
+      </div>
+      <div id="t-sua">
+        <div class="hang">
+          <button id="bTrai" class="dovui" onclick="themCon('left')">➕ Con trái</button><button id="bPhai" class="dovui" onclick="themCon('right')">➕ Con phải</button>
+          <button id="bXoa" class="nguy" onclick="xoaNut()">🗑 Xóa nút</button>
+        </div>
+        <div class="hang">
+          <button class="phu" onclick="hoanTac()">↩ Hoàn tác</button><button class="phu" onclick="datLaiCay()">♻ Cây ban đầu</button>
+        </div>
+      </div>
+      <div id="t-quiz">
+        <div class="hang">
+          <button class="dovui" onclick="batDauTN()">📝 Trắc nghiệm (8 câu)</button><button onclick="batDauDoVui()">🎯 Chạm đúng thứ tự</button>
+        </div>
+      </div>
+      <div class="hang">
+        <button class="phu" onclick="datLai()">Đặt lại màu</button><button id="btnKhoa" class="phu" onclick="giuCoDinh()">🔒 Giữ cố định</button>
+      </div>
+    </div>
+  </div>
+
   <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 100; warmupTolerance: 5; missTolerance: 10; uiLoading: yes; uiScanning: yes; uiError: yes;"
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 100; warmupTolerance: 5; missTolerance: 10; uiLoading: yes; uiScanning: yes; uiError: no;"
     color-space="sRGB"
     renderer="colorManagement: true; antialias: true"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
-
-    <!-- Ánh sáng: thiếu đèn thì màu bị tối -->
     <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
     <a-entity light="type: directional; color: #ffffff; intensity: 0.8" position="0.5 1 1"></a-entity>
-
-    <a-camera position="0 0 0" look-controls="enabled: false"
-              cursor="rayOrigin: mouse; fuse: false"
-              raycaster="objects: .clickable"></a-camera>
-
+    <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-camera>
     <a-entity id="target" mindar-image-target="targetIndex: 0">
       <a-entity id="cay" binary-tree></a-entity>
     </a-entity>
   </a-scene>
 
   <script>
-    /* ------------------------------------------------------------------
-     * DỮ LIỆU CÂY - toạ độ pixel đo trực tiếp trên ảnh đích (425 x 364).
-     * Nếu ảnh đích của bạn có kích thước khác, sửa W, H và các px, py.
-     * Thêm ?debug vào URL để hiện khung xanh = đúng bằng ảnh đích.
-     * ------------------------------------------------------------------ */
-    const W = 425, H = 364;
-    const TREE = {
+    const $ = id => document.getElementById(id);
+    /* Toạ độ pixel trên ảnh đích 425 x 364. Thêm ?debug vào URL để hiện khung ảnh đích. */
+    const W = 425, H = 364, ROOT = 1, R = 0.043, MAXN = 15;
+    const DEF = {
       1: { px: 224, py: 73,  left: 2,    right: null },
       2: { px: 222, py: 162, left: 3,    right: 4 },
       3: { px: 144, py: 237, left: 5,    right: 6 },
@@ -93,153 +154,375 @@
       5: { px: 66,  py: 327, left: null, right: null },
       6: { px: 204, py: 331, left: null, right: null }
     };
-    const ROOT = 1;
-    const COLOR = { root: '#ef4444', inner: '#3b82f6', leaf: '#22c55e', hi: '#facc15' };
-
-    // Tính cha, mức, vai trò
-    (function prepare() {
+    const COLOR = { root: '#ef4444', inner: '#3b82f6', leaf: '#22c55e', hi: '#facc15', xet: '#fb923c', da: '#a78bfa', sai: '#dc2626', trai: '#14b8a6', phai: '#ec4899' };
+    const ROLE_TEXT = { root: 'Nút gốc', inner: 'Nút trong', leaf: 'Nút lá' };
+    let TREE, NE = {}, HALO = null, hist = [];
+    function prepare() {
       (function walk(id, parent, depth) {
-        const n = TREE[id];
-        n.parent = parent; n.depth = depth; n.id = id;
+        const n = TREE[id]; n.parent = parent; n.depth = depth; n.id = id;
         n.role = id === ROOT ? 'root' : (n.left || n.right) ? 'inner' : 'leaf';
         if (n.left) walk(n.left, id, depth + 1);
         if (n.right) walk(n.right, id, depth + 1);
       })(ROOT, null, 0);
-    })();
-
-    const ROLE_TEXT = { root: 'Nút gốc', inner: 'Nút trong', leaf: 'Nút lá' };
+    }
+    function nap(src) { TREE = JSON.parse(JSON.stringify(src)); prepare(); }
+    nap(DEF);
+    const ids = () => Object.keys(TREE).map(Number);
     const toUnit = (px, py) => new THREE.Vector3((px - W / 2) / W, (H / 2 - py) / W, 0);
 
-    /* ------------------------------------------------------------------ */
-    AFRAME.registerComponent('binary-tree', {
-      init: function () {
-        const root = this.el;
-        this.nodeEls = {};
-
-        // Khung debug
-        if (location.search.indexOf('debug') >= 0) {
-          const f = document.createElement('a-plane');
-          f.setAttribute('width', 1); f.setAttribute('height', H / W);
-          f.setAttribute('color', '#00c2ff'); f.setAttribute('opacity', 0.25);
-          root.appendChild(f);
-        }
-
-        // Cạnh: hình trụ nối tâm hai nút
-        Object.keys(TREE).forEach(id => {
-          const n = TREE[id];
-          [n.left, n.right].forEach(cid => {
-            if (!cid) return;
-            const a = toUnit(n.px, n.py), b = toUnit(TREE[cid].px, TREE[cid].py);
-            const dir = new THREE.Vector3().subVectors(b, a);
-            const len = dir.length();
-            const edge = document.createElement('a-entity');
-            edge.setAttribute('geometry', 'primitive: cylinder; radius: 0.007; height: ' + len + '; segmentsRadial: 12');
-            edge.setAttribute('material', 'color: #1e293b; roughness: 0.6; metalness: 0');
-            edge.object3D.position.copy(a.clone().add(b).multiplyScalar(0.5)).setZ(0.03);
-            edge.object3D.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
-            root.appendChild(edge);
-          });
-        });
-
-        // Nút: cầu + số
-        Object.keys(TREE).forEach(id => {
-          const n = TREE[id];
-          const p = toUnit(n.px, n.py);
-          const node = document.createElement('a-entity');
-          node.classList.add('clickable');
-          node.setAttribute('geometry', 'primitive: sphere; radius: 0.043; segmentsWidth: 32; segmentsHeight: 24');
-          node.setAttribute('material', 'color: ' + COLOR[n.role] + '; roughness: 0.35; metalness: 0.1');
-          node.object3D.position.set(p.x, p.y, 0.05);
-          node.dataset.id = id;
-
-          const label = document.createElement('a-text');
-          label.setAttribute('value', id);
-          label.setAttribute('align', 'center');
-          label.setAttribute('anchor', 'center');
-          label.setAttribute('color', '#ffffff');
-          label.setAttribute('width', 0.28);
-          label.setAttribute('position', '0 0 0.045');
-          node.appendChild(label);
-
-          node.addEventListener('click', () => chonNut(Number(id)));
-          root.appendChild(node);
-          this.nodeEls[id] = node;
-        });
-
-        window.__nodeEls = this.nodeEls;
+    /* ---------------- Dựng cây AR (gọi lại mỗi khi thêm/xóa nút) ---------------- */
+    function buildTree(newId) {
+      const root = $('cay'); while (root.firstChild) root.removeChild(root.firstChild); NE = {};
+      if (location.search.indexOf('debug') >= 0) {
+        const f = document.createElement('a-plane');
+        f.setAttribute('width', 1); f.setAttribute('height', H / W); f.setAttribute('color', '#00c2ff'); f.setAttribute('opacity', 0.25);
+        root.appendChild(f);
       }
-    });
-
-    /* ----------------------- Giao diện & tương tác ----------------------- */
-    const $ = id => document.getElementById(id);
-    let timers = [];
-
-    function setNode(id, on) {
-      const el = window.__nodeEls && window.__nodeEls[id];
-      if (!el) return;
-      const col = on ? COLOR.hi : COLOR[TREE[id].role];
-      el.setAttribute('material', 'color', col);
-      el.setAttribute('scale', on ? '1.25 1.25 1.25' : '1 1 1');
+      ids().forEach(id => {
+        const n = TREE[id];
+        [n.left, n.right].forEach(cid => {
+          if (!cid) return;
+          const a = toUnit(n.px, n.py), b = toUnit(TREE[cid].px, TREE[cid].py), dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+          const edge = document.createElement('a-entity');
+          edge.setAttribute('geometry', 'primitive: cylinder; radius: 0.007; height: ' + len + '; segmentsRadial: 12');
+          edge.setAttribute('material', 'color: #1e293b; roughness: 0.6; metalness: 0');
+          edge.object3D.position.copy(a.clone().add(b).multiplyScalar(0.5)).setZ(0.03);
+          edge.object3D.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+          root.appendChild(edge);
+        });
+      });
+      ids().forEach(id => {
+        const n = TREE[id], p = toUnit(n.px, n.py), node = document.createElement('a-entity');
+        node.setAttribute('geometry', 'primitive: sphere; radius: ' + R + '; segmentsWidth: 32; segmentsHeight: 24');
+        node.setAttribute('material', 'color: ' + COLOR[n.role] + '; roughness: 0.35; metalness: 0.1');
+        node.object3D.position.set(p.x, p.y, 0.05);
+        if (id === newId) node.setAttribute('animation', 'property: scale; from: 0.01 0.01 0.01; to: 1 1 1; dur: 450; easing: easeOutBack');
+        const label = document.createElement('a-text');
+        label.setAttribute('value', id); label.setAttribute('align', 'center'); label.setAttribute('anchor', 'center');
+        label.setAttribute('color', '#ffffff'); label.setAttribute('width', 0.28); label.setAttribute('position', '0 0 0.045');
+        node.appendChild(label);
+        const hit = document.createElement('a-entity'); // vùng chạm lớn hơn nút ~1,7 lần
+        hit.classList.add('clickable');
+        hit.setAttribute('geometry', 'primitive: sphere; radius: ' + (R * 1.7));
+        hit.setAttribute('material', 'opacity: 0; transparent: true; depthWrite: false');
+        hit.addEventListener('click', () => chonNut(id));
+        node.appendChild(hit); root.appendChild(node); NE[id] = node;
+      });
+      HALO = document.createElement('a-entity'); // vòng sáng quanh nút đang chọn
+      HALO.setAttribute('geometry', 'primitive: ring; radiusInner: ' + R * 1.3 + '; radiusOuter: ' + R * 1.55 + '; segmentsTheta: 40');
+      HALO.setAttribute('material', 'color: #facc15; shader: flat; side: double; transparent: true; opacity: 0.9');
+      HALO.setAttribute('animation', 'property: scale; from: 1 1 1; to: 1.25 1.25 1.25; dir: alternate; loop: true; dur: 700; easing: easeInOutSine');
+      HALO.setAttribute('visible', false); root.appendChild(HALO);
+      setHalo(sel);
     }
-    function xoaSang() { Object.keys(TREE).forEach(id => setNode(id, false)); }
+    function setHalo(id) {
+      if (!HALO) return;
+      if (!id || !TREE[id]) { HALO.setAttribute('visible', false); return; }
+      const p = toUnit(TREE[id].px, TREE[id].py); HALO.object3D.position.set(p.x, p.y, 0.1); HALO.setAttribute('visible', true);
+    }
+    AFRAME.registerComponent('binary-tree', { init: function () { buildTree(); } });
 
+    /* ---------------------------- Tiện ích ---------------------------- */
+    const NAMES = { NLR: 'Tiền tự (Gốc–Trái–Phải)', LNR: 'Trung tự (Trái–Gốc–Phải)', LRN: 'Hậu tự (Trái–Phải–Gốc)' };
+    const HINT = { NLR: 'Tiền tự: thăm gốc trước, rồi duyệt hết cây con trái, rồi cây con phải.',
+                   LNR: 'Trung tự: duyệt hết cây con trái, rồi thăm gốc, rồi cây con phải.',
+                   LRN: 'Hậu tự: duyệt cây con trái, rồi cây con phải, cuối cùng mới thăm gốc.' };
+    const ORDER = { NLR: ['V', 'L', 'R'], LNR: ['L', 'V', 'R'], LRN: ['L', 'R', 'V'] };
+    let run = null, quiz = null, mcq = null, sel = null, frozen = false, dangThay = false, loiCamera = false, flashTimer = null, editTimer = null;
+
+    function to(id, col, big) {
+      const el = NE[id]; if (!el) return;
+      el.setAttribute('material', 'color', col); el.setAttribute('scale', big ? '1.25 1.25 1.25' : '1 1 1');
+    }
+    function xoaSang(da) { ids().forEach(id => to(id, da && da.has(id) ? COLOR.da : COLOR[TREE[id].role], false)); }
+    function thongke() {
+      const la = ids().filter(i => TREE[i].role === 'leaf').length, sau = Math.max(...ids().map(i => TREE[i].depth));
+      return 'Cây có ' + ids().length + ' nút, ' + la + ' lá, mức sâu nhất: ' + sau + '. Chạm vào một nút để xem thông tin.';
+    }
+    function chiSo(id) { const n = TREE[id]; return 1 + Math.max(n.left ? chiSo(n.left) : 0, n.right ? chiSo(n.right) : 0); }
+    function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2200); }
+    function rung(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+    function dungHet() {
+      if (run) clearTimeout(run.timer); run = null; quiz = null; mcq = null; clearTimeout(flashTimer); clearTimeout(editTimer);
+      $('code').style.display = 'none'; $('stack').style.display = 'none'; $('thutu').textContent = '';
+      $('quizbar').style.display = 'none'; $('mcq').style.display = 'none';
+      if (dangThay || frozen) { $('panel').style.display = 'block'; $('tieude').style.display = 'block'; }
+    }
+    function tab(n) {
+      ['kp', 'duyet', 'sua', 'quiz'].forEach(t => { $('t-' + t).style.display = t === n ? 'block' : 'none'; $('b-' + t).classList.toggle('on', t === n); });
+    }
+    function hienCode(lines, act) {
+      $('code').innerHTML = lines.map((s, k) => '<span class="t' + (act && act.indexOf(k) >= 0 ? ' act' : '') + '">' + s + '</span>').join('');
+      $('code').style.display = 'block';
+    }
+    function capNhatSua() {
+      const n = sel && TREE[sel];
+      $('bTrai').disabled = !n || !!n.left; $('bPhai').disabled = !n || !!n.right; $('bXoa').disabled = !n || sel === ROOT;
+    }
+    function thongTinNut(id) {
+      const n = TREE[id];
+      $('thongtin').innerHTML = '<b>Nút ' + id + '</b> – ' + ROLE_TEXT[n.role] + ' (mức ' + n.depth + ')<br>' +
+        'Cha: ' + (n.parent || 'không có') + ' | Con trái: ' + (n.left || 'không có') + ' | Con phải: ' + (n.right || 'không có') +
+        '<br>Cây con gốc ' + id + ' có ' + chiSo(id) + ' mức';
+    }
+
+    /* ---------------------------- Chạm vào nút ---------------------------- */
     function chonNut(id) {
-      huyDuyet(); xoaSang(); setNode(id, true);
-      const n = TREE[id];
-      const con = [n.left, n.right].filter(Boolean);
-      $('thongtin').innerHTML =
-        '<b>Nút ' + id + '</b> – ' + ROLE_TEXT[n.role] + ' (mức ' + n.depth + ')<br>' +
-        'Cha: ' + (n.parent || 'không có') + ' | Con: ' + (con.length ? con.join(', ') : 'không có');
-      $('thutu').textContent = '';
+      if (quiz && !quiz.done) { traLoi(id); return; }
+      if (mcq) return;
+      dungHet(); sel = id; xoaSang(); to(id, COLOR.hi, true); setHalo(id); thongTinNut(id); capNhatSua();
+    }
+    function hienCayCon(side) {
+      if (!sel) return toast('Chạm vào một nút trước');
+      const c = TREE[sel][side], ten = side === 'left' ? 'trái' : 'phải';
+      if (!c) return toast('Nút ' + sel + ' không có cây con ' + ten);
+      const set = new Set(); (function g(i) { if (!i) return; set.add(i); g(TREE[i].left); g(TREE[i].right); })(c);
+      xoaSang(); set.forEach(i => to(i, side === 'left' ? COLOR.trai : COLOR.phai, false)); to(sel, COLOR.hi, true);
+      $('thongtin').innerHTML = '<b>Cây con ' + ten + ' của nút ' + sel + '</b> gồm các nút: ' + [...set].join(', ');
     }
 
-    function thuTu(kind, id, out) {
-      if (!id) return out;
-      const n = TREE[id];
-      if (kind === 'NLR') out.push(id);
-      thuTu(kind, n.left, out);
-      if (kind === 'LNR') out.push(id);
-      thuTu(kind, n.right, out);
-      if (kind === 'LRN') out.push(id);
-      return out;
+    /* ---------------------------- Thêm / xóa nút ---------------------------- */
+    const CODE = {
+      them: ['ThemNut(P, huong):', '  nếu con(P, huong) đã có thì dừng', '  tạo nút mới N', '  con(P, huong) ← N'],
+      xoa: ['XoaCay(N):', '  nếu N rỗng thì dừng', '  XoaCay(trái(N))', '  XoaCay(phải(N))', '  giải phóng N']
+    };
+    function pushHist() { hist.push(JSON.stringify(TREE)); if (hist.length > 30) hist.shift(); }
+    function viTri(pid, side) { // vị trí nút mới: dưới nút cha, lệch trái/phải, tránh đè nút khác
+      const p = TREE[pid], dx = [130, 75, 45, 34][Math.min(p.depth, 3)] * (side === 'left' ? -1 : 1);
+      let x = p.px + dx, y = p.py + 85;
+      for (let k = 0; k < 12 && ids().some(i => Math.hypot(TREE[i].px - x, TREE[i].py - y) < 46); k++) x += dx > 0 ? 24 : -24;
+      return [x, y];
     }
+    function themCon(side) {
+      if (!sel) return toast('Chạm chọn nút cha trước');
+      if (ids().length >= MAXN) return toast('Tối đa ' + MAXN + ' nút để dễ quan sát');
+      const p = TREE[sel]; if (p[side]) return toast('Nút ' + sel + ' đã có con này rồi');
+      pushHist(); dungHet();
+      const id = Math.max(...ids()) + 1, xy = viTri(sel, side), cha = sel;
+      TREE[id] = { px: xy[0], py: xy[1], left: null, right: null }; p[side] = id; prepare(); buildTree(id);
+      xoaSang(); to(cha, COLOR.hi, true); to(id, COLOR.xet, true); capNhatSua(); rung(30);
+      hienCode(CODE.them, [2, 3]);
+      $('thongtin').innerHTML = '<b>Đã thêm nút ' + id + '</b> làm con ' + (side === 'left' ? 'trái' : 'phải') + ' của nút ' + cha + '.<br>' + thongke().split('. Chạm')[0] + '.';
+    }
+    function xoaNut() {
+      if (!sel) return toast('Chạm chọn nút cần xóa');
+      if (sel === ROOT) return toast('Không xóa nút gốc – dùng "Cây ban đầu" để làm lại');
+      const id = sel, cha = TREE[id].parent, order = []; let k = 0;
+      (function g(i) { if (!i) return; g(TREE[i].left); g(TREE[i].right); order.push(i); })(id);
+      pushHist(); dungHet(); hienCode(CODE.xoa, []);
+      (function step() {
+        xoaSang();
+        if (k < order.length) {
+          to(order[k], COLOR.sai, true); hienCode(CODE.xoa, [4]);
+          $('thongtin').innerHTML = '<b>Xóa theo thứ tự hậu tự:</b> giải phóng nút ' + order[k] + ' (con xóa trước, cha xóa sau)';
+          k++; editTimer = setTimeout(step, 600); return;
+        }
+        const p = TREE[cha]; if (p.left === id) p.left = null; else p.right = null;
+        order.forEach(i => delete TREE[i]); prepare(); sel = cha; buildTree(); xoaSang(); to(cha, COLOR.hi, true); capNhatSua(); rung(30);
+        $('thongtin').innerHTML = '<b>Đã xóa ' + order.length + ' nút</b> (' + order.join(', ') + ').<br>' + thongke().split('. Chạm')[0] + '.';
+      })();
+    }
+    function hoanTac() {
+      if (!hist.length) return toast('Không còn gì để hoàn tác');
+      dungHet(); TREE = JSON.parse(hist.pop()); prepare(); if (sel && !TREE[sel]) sel = null;
+      buildTree(); xoaSang(); capNhatSua(); $('thongtin').textContent = 'Đã hoàn tác. ' + thongke();
+    }
+    function datLaiCay() { pushHist(); dungHet(); nap(DEF); sel = null; buildTree(); xoaSang(); capNhatSua(); $('thongtin').textContent = 'Đã về cây ban đầu. ' + thongke(); }
 
-    function huyDuyet() { timers.forEach(clearTimeout); timers = []; }
+    /* ---------------- Duyệt: mô phỏng đệ quy thành danh sách sự kiện ---------------- */
+    function moPhong(kind) {
+      const ev = [], st = [];
+      (function go(id) {
+        st.push(id ? 'Duyet(' + id + ')' : 'Duyet(rỗng)');
+        if (!id) { ev.push({ line: 1, cur: null, stack: st.slice(), note: 'N rỗng → dừng, quay lại' }); st.pop(); return; }
+        ev.push({ line: 1, cur: id, stack: st.slice(), note: 'N = ' + id + ' khác rỗng, tiếp tục' });
+        ORDER[kind].forEach((a, k) => {
+          if (a === 'V') ev.push({ line: 2 + k, cur: id, visit: true, stack: st.slice(), note: 'Thăm nút ' + id });
+          else { ev.push({ line: 2 + k, cur: id, stack: st.slice(), note: 'Gọi Duyet cho con ' + (a === 'L' ? 'trái' : 'phải') + ' của ' + id });
+                 go(a === 'L' ? TREE[id].left : TREE[id].right); }
+        });
+        st.pop();
+      })(ROOT);
+      return ev;
+    }
+    function maGia(kind) {
+      const mo = { V: 'thăm N', L: 'Duyet(trái(N))', R: 'Duyet(phải(N))' };
+      return ['Duyet(N):', '  nếu N rỗng thì dừng'].concat(ORDER[kind].map(a => '  ' + mo[a]));
+    }
+    const delay = () => [2000, 1400, 900, 500, 250][$('tocdo').value - 1];
 
-    function duyet(kind) {
-      huyDuyet(); xoaSang();
-      const names = { NLR: 'Tiền tự (Gốc–Trái–Phải)', LNR: 'Trung tự (Trái–Gốc–Phải)', LRN: 'Hậu tự (Trái–Phải–Gốc)' };
-      const seq = thuTu(kind, ROOT, []);
-      $('thongtin').innerHTML = '<b>Duyệt ' + names[kind] + '</b><br>(nút 2 là con trái của nút 1)';
-      $('thutu').textContent = '';
-      seq.forEach((id, i) => {
-        timers.push(setTimeout(() => {
-          xoaSang(); setNode(id, true);
-          $('thutu').textContent = seq.slice(0, i + 1).join(' → ');
-        }, i * 1000));
+    function batDauDuyet(kind) {
+      dungHet(); xoaSang(); sel = null; setHalo(null); capNhatSua();
+      run = { kind, ev: moPhong(kind), i: 0, vis: new Set(), order: [], playing: true, timer: null };
+      hienCode(maGia(kind)); $('stack').style.display = 'block';
+      $('thongtin').innerHTML = '<b>Duyệt ' + NAMES[kind] + '</b>';
+      capNhatNut(); tick();
+    }
+    function tick() {
+      if (!run) return; clearTimeout(run.timer);
+      if (run.i >= run.ev.length) { run.playing = false; capNhatNut(); return; }
+      const e = run.ev[run.i++];
+      if (e.visit) { run.vis.add(e.cur); run.order.push(e.cur); }
+      ids().forEach(id => {
+        if (id === e.cur) to(id, e.visit ? COLOR.hi : COLOR.xet, true);
+        else to(id, run.vis.has(id) ? COLOR.da : COLOR[TREE[id].role], false);
       });
-      timers.push(setTimeout(xoaSang, seq.length * 1000 + 500));
+      [].forEach.call($('code').children, (s, k) => s.className = 't' + (k === e.line ? ' act' : ''));
+      $('stack').textContent = 'Ngăn xếp gọi: ' + e.stack.join(' → ');
+      $('thutu').textContent = run.order.join(' → ');
+      $('thongtin').innerHTML = '<b>Duyệt ' + NAMES[run.kind] + '</b><br>' + e.note;
+      if (run.i >= run.ev.length) { run.playing = false; $('thongtin').innerHTML += '<br>Xong! Thứ tự thăm: ' + run.order.join(' → '); capNhatNut(); }
+      else if (run.playing) run.timer = setTimeout(tick, delay());
+    }
+    function capNhatNut() { $('btnChay').textContent = run && run.playing ? '⏸ Tạm dừng' : '▶ Chạy'; }
+    function chayTamDung() {
+      if (!run) return;
+      if (run.playing) { run.playing = false; clearTimeout(run.timer); }
+      else { if (run.i >= run.ev.length) { batDauDuyet(run.kind); return; } run.playing = true; tick(); }
+      capNhatNut();
+    }
+    function buocTiep() {
+      if (!run) { toast('Chọn kiểu duyệt (Tiền tự, Trung tự, Hậu tự) trước'); return; }
+      run.playing = false; clearTimeout(run.timer); tick(); capNhatNut();
     }
 
-    function datLai() {
-      huyDuyet(); xoaSang();
-      $('thongtin').textContent = 'Chạm vào một nút để xem thông tin.';
-      $('thutu').textContent = '';
+    /* ---------------------------- Trắc nghiệm (sinh câu hỏi từ cây hiện tại) ---------------------------- */
+    const rnd = a => a[Math.floor(Math.random() * a.length)];
+    const shuf = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+    const seqOf = k => moPhong(k).filter(e => e.visit).map(e => e.cur);
+    function mc(text, right, wrongs, why, extra) {
+      wrongs = [...new Set(wrongs.map(String))].filter(w => w !== String(right)); if (wrongs.length < 3) return null;
+      const o = shuf([String(right)].concat(shuf(wrongs).slice(0, 3)));
+      return Object.assign({ text, opts: o, ans: o.indexOf(String(right)), why }, extra);
+    }
+    const ST = [
+      ['Mỗi nút của cây nhị phân có tối đa bao nhiêu nút con?', '2', ['1', '3', '4'], 'Cây nhị phân: mỗi nút có tối đa hai con (trái và phải).'],
+      ['Nút không có nút con nào được gọi là:', 'Nút lá', ['Nút gốc', 'Nút trong', 'Nút cha'], 'Nút lá là nút không có con.'],
+      ['Ở mức k (gốc là mức 0), cây nhị phân có tối đa bao nhiêu nút?', '2^k', ['2k', 'k²', 'k + 1'], 'Mỗi nút sinh tối đa 2 con nên số nút tối đa nhân đôi sau mỗi mức.'],
+      ['Duyệt tiền tự thăm nút gốc vào lúc nào?', 'Đầu tiên', ['Sau cây con trái', 'Cuối cùng', 'Sau cây con phải'], 'Tiền tự: Gốc – Trái – Phải.'],
+      ['Duyệt hậu tự thăm nút gốc vào lúc nào?', 'Cuối cùng', ['Đầu tiên', 'Giữa hai cây con', 'Không thăm gốc'], 'Hậu tự: Trái – Phải – Gốc.'],
+      ['Thuật toán duyệt cây nhị phân thường được cài đặt bằng kĩ thuật nào?', 'Đệ quy', ['Sắp xếp nổi bọt', 'Tìm kiếm nhị phân trên mảng', 'Quy hoạch động'], 'Cây con cũng là cây nhị phân nên dùng hàm tự gọi lại chính nó.']
+    ];
+    const GENS = [
+      () => { const k = rnd(['NLR', 'LNR', 'LRN']), s = seqOf(k), j = x => x.join(' – ');
+        return mc('Kết quả duyệt ' + NAMES[k] + ' của cây đang hiển thị là:', j(s),
+          ['NLR', 'LNR', 'LRN'].filter(x => x !== k).map(x => j(seqOf(x))).concat([j(s.slice().reverse()), j(shuf(s))]),
+          HINT[k] + ' Thứ tự đúng: ' + j(s) + '.', { seq: s }); },
+      () => { const n = ids().filter(i => TREE[i].role === 'leaf'), c = n.length;
+        return mc('Cây đang hiển thị có bao nhiêu nút lá?', c, [c + 1, c + 2, c + 3, Math.max(0, c - 1), ids().length],
+          'Nút lá là nút không có con: ' + n.join(', ') + '.', { nodes: n }); },
+      () => { const h = chiSo(ROOT);
+        return mc('Chiều cao của cây (số nút trên đường đi dài nhất từ gốc đến lá) là:', h, [h + 1, h + 2, h + 3, Math.max(1, h - 1)],
+          'Đường dài nhất đi qua ' + h + ' nút.'); },
+      () => { const x = rnd(ids().filter(i => i !== ROOT));
+        return mc('Nút cha của nút ' + x + ' là nút nào?', TREE[x].parent, ids().filter(i => i !== TREE[x].parent && i !== x),
+          'Nút ' + x + ' là con của nút ' + TREE[x].parent + '.', { nodes: [x] }); },
+      () => { const x = rnd(ids()), d = TREE[x].depth;
+        return mc('Nút ' + x + ' ở mức mấy? (gốc ở mức 0)', d, [d + 1, d + 2, d + 3, Math.max(0, d - 1)],
+          'Gốc ở mức 0, mỗi lần xuống một nút con thì tăng thêm 1 mức.', { nodes: [x] }); },
+      () => { const x = rnd(ids()), c = (TREE[x].left ? 1 : 0) + (TREE[x].right ? 1 : 0);
+        return mc('Nút ' + x + ' có bao nhiêu nút con?', c, [0, 1, 2, 3], 'Đếm con trái và con phải của nút ' + x + '.', { nodes: [x] }); },
+      () => { const s = rnd(ST); return mc(s[0], s[1], s[2], s[3]); },
+      () => { const s = rnd(ST); return mc(s[0], s[1], s[2], s[3]); }
+    ];
+    function batDauTN() {
+      dungHet(); xoaSang(); sel = null; setHalo(null); const qs = [];
+      for (let t = 0; t < 80 && qs.length < 8; t++) { const q = rnd(GENS)(); if (q && !qs.some(x => x.text === q.text)) qs.push(q); }
+      mcq = { qs, i: 0, diem: 0, tl: false };
+      $('panel').style.display = 'none'; $('tieude').style.display = 'none'; $('mcq').style.display = 'block'; hienCau();
+    }
+    function hienCau() {
+      const m = mcq, q = m.qs[m.i]; m.tl = false; clearTimeout(flashTimer); xoaSang(); (q.nodes || []).forEach(i => to(i, COLOR.hi, true));
+      $('mno').textContent = 'Câu ' + (m.i + 1) + '/' + m.qs.length; $('mscore').textContent = '⭐ ' + m.diem;
+      $('mbar').style.width = (m.i / m.qs.length * 100) + '%'; $('mtext').textContent = q.text;
+      $('mopts').innerHTML = q.opts.map((o, k) => '<button class="opt" onclick="chonDA(' + k + ')"><b>' + 'ABCD'[k] + '</b>' + o + '</button>').join('');
+      $('mwhy').style.display = 'none'; $('mnext').style.display = 'none'; $('mnext').onclick = tiepCau;
+    }
+    function chonDA(k) {
+      const m = mcq, q = m.qs[m.i]; if (m.tl) return; m.tl = true; const ok = k === q.ans; if (ok) m.diem++;
+      [].forEach.call($('mopts').children, (b, j) => { b.disabled = true; if (j === q.ans) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); });
+      $('mwhy').innerHTML = (ok ? '✅ <b>Chính xác!</b> ' : '❌ <b>Chưa đúng.</b> ') + q.why; $('mwhy').style.display = 'block';
+      $('mscore').textContent = '⭐ ' + m.diem; rung(ok ? 30 : [60, 40, 60]);
+      $('mnext').textContent = m.i + 1 < m.qs.length ? 'Câu tiếp ➜' : 'Xem kết quả'; $('mnext').style.display = 'inline-block';
+      if (q.seq) { let s = q.seq, n = 0; (function f() { if (!mcq || n > s.length) return; xoaSang(new Set(s.slice(0, n))); if (n < s.length) to(s[n], COLOR.hi, true); n++; flashTimer = setTimeout(f, 650); })(); }
+    }
+    function tiepCau() { clearTimeout(flashTimer); if (mcq.i + 1 < mcq.qs.length) { mcq.i++; hienCau(); } else ketQua(); }
+    function ketQua() {
+      const m = mcq, r = m.diem / m.qs.length; xoaSang(); $('mbar').style.width = '100%';
+      $('mno').textContent = 'Kết quả'; $('mopts').innerHTML = ''; $('mwhy').style.display = 'none';
+      $('mtext').innerHTML = (r >= .8 ? '🏆 Xuất sắc!' : r >= .5 ? '👍 Khá tốt!' : '💪 Cố lên!') + ' Bạn đúng ' + m.diem + '/' + m.qs.length + ' câu.<br><small>' +
+        (r >= .8 ? 'Bạn nắm rất chắc cây nhị phân.' : 'Thử duyệt lại cây ở tab Duyệt rồi làm bộ câu hỏi mới nhé.') + '</small>';
+      $('mnext').textContent = '🔁 Làm bộ mới'; $('mnext').onclick = batDauTN;
+    }
+    function thoatQuiz() { dungHet(); xoaSang(); sel = null; setHalo(null); capNhatSua(); $('thongtin').textContent = thongke(); }
+
+    /* ---------------------------- Đố chạm đúng thứ tự ---------------------------- */
+    function batDauDoVui() {
+      dungHet(); xoaSang(); sel = null; setHalo(null);
+      const kind = ['NLR', 'LNR', 'LRN'][Math.floor(Math.random() * 3)];
+      quiz = { kind, seq: seqOf(kind), idx: 0, sai: 0, goi: 0, da: new Set(), done: false };
+      $('panel').style.display = 'none'; $('tieude').style.display = 'none'; $('quizbar').style.display = 'block';
+      $('qtext').innerHTML = '<b>Đố vui:</b> chạm lần lượt các nút theo thứ tự <b>' + NAMES[kind] + '</b> (' + quiz.seq.length + ' nút)';
+      $('qthutu').textContent = '';
+    }
+    function traLoi(id) {
+      const q = quiz;
+      if (id === q.seq[q.idx]) {
+        q.da.add(id); q.idx++; clearTimeout(flashTimer); xoaSang(q.da); to(id, COLOR.hi, true); rung(20);
+        $('qthutu').textContent = q.seq.slice(0, q.idx).join(' → ');
+        if (q.idx >= q.seq.length) {
+          q.done = true; const diem = Math.max(0, 10 - 2 * q.sai - q.goi);
+          $('qtext').innerHTML = '🎉 <b>Hoàn thành!</b> Sai ' + q.sai + ' lần, dùng ' + q.goi + ' gợi ý – Điểm: ' + diem + '/10';
+        } else $('qtext').innerHTML = '<b>Đúng!</b> (' + q.idx + '/' + q.seq.length + ') Chạm nút tiếp theo – ' + NAMES[q.kind];
+      } else {
+        q.sai++; to(id, COLOR.sai, true); clearTimeout(flashTimer); rung([50, 30, 50]);
+        flashTimer = setTimeout(() => { if (quiz === q) xoaSang(q.da); }, 450);
+        $('qtext').innerHTML = '<b>Chưa đúng.</b> ' + HINT[q.kind];
+      }
+    }
+    function goiY() {
+      const q = quiz; if (!q || q.done) return;
+      q.goi++; clearTimeout(flashTimer); xoaSang(q.da); to(q.seq[q.idx], COLOR.xet, true);
+      $('qtext').innerHTML = '<b>Gợi ý:</b> nút đang sáng màu cam là nút tiếp theo. ' + HINT[q.kind];
+      flashTimer = setTimeout(() => { if (quiz === q) xoaSang(q.da); }, 1500);
+    }
+    function datLai() { dungHet(); xoaSang(); sel = null; setHalo(null); capNhatSua(); $('thongtin').textContent = thongke(); }
+
+    /* ---------------------------- Bảng điều khiển ---------------------------- */
+    function thuGon() {
+      const an = $('noidung').style.display !== 'none';
+      $('noidung').style.display = an ? 'none' : 'block'; $('thu').textContent = an ? '▴' : '▾';
+    }
+    function giuCoDinh() {
+      const o = $('cay').object3D, scene = document.querySelector('a-scene').object3D;
+      if (!frozen) {
+        if (!dangThay) { toast('Cần quét thấy ảnh đích trước khi giữ cố định'); return; }
+        o.updateWorldMatrix(true, false); scene.attach(o); frozen = true;
+        $('btnKhoa').textContent = '🔓 Bỏ cố định';
+      } else {
+        $('target').object3D.attach(o); frozen = false; $('btnKhoa').textContent = '🔒 Giữ cố định';
+        if (!dangThay) hienTrangThai(false);
+      }
     }
 
+    /* ---------------------------- Trạng thái quét & lỗi ---------------------------- */
+    const MEO = 'Giữ điện thoại cách ảnh khoảng 20–40 cm, đủ sáng, tránh chói và bóng đổ lên ảnh.';
+    function baoLoi(t) { loiCamera = true; const h = $('huongdan'); h.className = 'hud loi'; h.textContent = t; h.style.display = 'block'; h.style.opacity = 1; }
+    function hienTrangThai(thay) {
+      $('huongdan').style.display = (thay || frozen || loiCamera) ? (loiCamera ? 'block' : 'none') : 'block';
+      $('tieude').style.display = (thay || frozen) ? 'block' : 'none';
+      $('panel').style.display = (thay || frozen) ? 'block' : 'none';
+    }
     document.addEventListener('DOMContentLoaded', () => {
-      const target = $('target');
-      target.addEventListener('targetFound', () => {
-        $('huongdan').style.display = 'none';
-        $('tieude').style.display = 'block';
-        $('panel').style.display = 'block';
-      });
-      target.addEventListener('targetLost', () => {
-        $('huongdan').style.display = 'block';
-        $('tieude').style.display = 'none';
-        $('panel').style.display = 'none';
-        datLai();
-      });
+      if (!window.isSecureContext || !navigator.mediaDevices) {
+        baoLoi('Trang cần mở bằng HTTPS (hoặc localhost) thì mới dùng được camera. Hãy mở lại bằng đường link https://…');
+      }
+      const scene = document.querySelector('a-scene'), target = $('target');
+      scene.addEventListener('arReady', () => { if (!loiCamera) $('huongdan').innerHTML = 'Đưa camera hướng vào ảnh đích, giữ ảnh trong khung hình<br><small>' + MEO + '</small>'; });
+      scene.addEventListener('arError', () => baoLoi('Không mở được camera. Hãy cho phép trình duyệt dùng camera (biểu tượng ổ khoá cạnh thanh địa chỉ), đóng ứng dụng khác đang dùng camera, rồi tải lại trang.'));
+      target.addEventListener('targetFound', () => { dangThay = true; hienTrangThai(true); if (!$('thongtin').textContent) $('thongtin').textContent = thongke(); });
+      target.addEventListener('targetLost', () => { dangThay = false; if (!frozen) { hienTrangThai(false); datLai(); } });
+      tab('kp'); capNhatSua(); $('thongtin').textContent = thongke();
     });
   </script>
 </body>
