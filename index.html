@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>AR Cây Nhị Phân - MindAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; }
+    a-scene { position: fixed; inset: 0; }
+    .hud { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%); box-sizing: border-box;
+           max-width: calc(100% - 24px); color: #fff; background: rgba(15,23,42,.82); border-radius: 14px; text-align: center; }
+    #huongdan { top: 12px; padding: 10px 14px; font-size: 14px; line-height: 1.4; width: max-content; pointer-events: none; transition: opacity .3s; }
+    #huongdan.loi { background: rgba(185,28,28,.92); }
+    #tieude { top: 12px; padding: 8px 16px; font-size: 16px; font-weight: bold; color: #fbbf24; letter-spacing: 1px; display: none; pointer-events: none; }
+    #panel { bottom: 10px; width: 460px; padding: 8px 12px; display: none; max-height: 52vh; overflow-y: auto; }
+    #thu { float: right; padding: 3px 9px; font-size: 14px; background: #475569; }
+    #thongtin { font-size: 14px; line-height: 1.45; min-height: 38px; margin-bottom: 6px; }
+    #code { display: none; text-align: left; font: 13px/1.5 monospace; background: rgba(0,0,0,.35); border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; white-space: pre; overflow-x: auto; }
+    #code .act { background: #facc15; color: #0f172a; font-weight: bold; display: block; }
+    #code span { display: block; }
+    #stack { display: none; font-size: 13px; color: #fb923c; margin-bottom: 6px; word-break: break-word; }
+    #thutu { font-size: 15px; font-weight: bold; color: #fbbf24; min-height: 20px; margin-bottom: 6px; }
+    .hang { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    button { border: 0; border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: bold; color: #fff; background: #2563eb; cursor: pointer; }
+    button:active { background: #1d4ed8; }
+    button.phu { background: #475569; } button.dovui { background: #16a34a; }
+    .chuthich { font-size: 12px; margin-bottom: 6px; }
+    .cham { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 8px; }
+    #tocdo { width: 80px; } label { font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="huongdan" class="hud">Đưa camera hướng vào ảnh đích, giữ ảnh trong khung hình</div>
+  <div id="tieude" class="hud">CÂY NHỊ PHÂN</div>
+
+  <div id="panel" class="hud">
+    <button id="thu" class="phu" onclick="thuGon()">▾</button>
+    <div class="chuthich">
+      <span class="cham" style="background:#ef4444"></span>Gốc
+      <span class="cham" style="background:#3b82f6"></span>Nút trong
+      <span class="cham" style="background:#22c55e"></span>Lá
+      <span class="cham" style="background:#a78bfa"></span>Đã thăm
+    </div>
+    <div id="noidung">
+      <div id="thongtin"></div>
+      <div id="code"></div>
+      <div id="stack"></div>
+      <div id="thutu"></div>
+      <div class="hang">
+        <button onclick="batDauDuyet('NLR')">Tiền tự</button>
+        <button onclick="batDauDuyet('LNR')">Trung tự</button>
+        <button onclick="batDauDuyet('LRN')">Hậu tự</button>
+        <button class="dovui" onclick="batDauDoVui()">Đố vui</button>
+      </div>
+      <div class="hang">
+        <button id="btnChay" class="phu" onclick="chayTamDung()">⏸ Tạm dừng</button>
+        <button class="phu" onclick="buocTiep()">⏭ Bước tiếp</button>
+        <label>Chậm <input type="range" id="tocdo" min="1" max="5" value="3"> Nhanh</label>
+      </div>
+      <div class="hang">
+        <button class="phu" onclick="datLai()">Đặt lại</button>
+        <button id="btnKhoa" class="phu" onclick="giuCoDinh()">🔒 Giữ cố định</button>
+      </div>
+    </div>
+  </div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 100; warmupTolerance: 5; missTolerance: 10; uiLoading: yes; uiScanning: yes; uiError: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true; antialias: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+    <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.8" position="0.5 1 1"></a-entity>
+    <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-camera>
+    <a-entity id="target" mindar-image-target="targetIndex: 0">
+      <a-entity id="cay" binary-tree></a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    /* Dữ liệu cây: toạ độ pixel trên ảnh đích 425 x 364. Thêm ?debug vào URL để hiện khung ảnh đích. */
+    const W = 425, H = 364;
+    const TREE = {
+      1: { px: 224, py: 73,  left: 2,    right: null },
+      2: { px: 222, py: 162, left: 3,    right: 4 },
+      3: { px: 144, py: 237, left: 5,    right: 6 },
+      4: { px: 312, py: 238, left: null, right: null },
+      5: { px: 66,  py: 327, left: null, right: null },
+      6: { px: 204, py: 331, left: null, right: null }
+    };
+    const ROOT = 1, R = 0.043;
+    const COLOR = { root: '#ef4444', inner: '#3b82f6', leaf: '#22c55e', hi: '#facc15', xet: '#fb923c', da: '#a78bfa', sai: '#dc2626' };
+    (function prepare() {
+      (function walk(id, parent, depth) {
+        const n = TREE[id]; n.parent = parent; n.depth = depth; n.id = id;
+        n.role = id === ROOT ? 'root' : (n.left || n.right) ? 'inner' : 'leaf';
+        if (n.left) walk(n.left, id, depth + 1);
+        if (n.right) walk(n.right, id, depth + 1);
+      })(ROOT, null, 0);
+    })();
+    const IDS = Object.keys(TREE).map(Number);
+    const ROLE_TEXT = { root: 'Nút gốc', inner: 'Nút trong', leaf: 'Nút lá' };
+    const toUnit = (px, py) => new THREE.Vector3((px - W / 2) / W, (H / 2 - py) / W, 0);
+
+    AFRAME.registerComponent('binary-tree', {
+      init: function () {
+        const root = this.el; this.nodeEls = {};
+        if (location.search.indexOf('debug') >= 0) {
+          const f = document.createElement('a-plane');
+          f.setAttribute('width', 1); f.setAttribute('height', H / W);
+          f.setAttribute('color', '#00c2ff'); f.setAttribute('opacity', 0.25);
+          root.appendChild(f);
+        }
+        IDS.forEach(id => {
+          const n = TREE[id];
+          [n.left, n.right].forEach(cid => {
+            if (!cid) return;
+            const a = toUnit(n.px, n.py), b = toUnit(TREE[cid].px, TREE[cid].py), dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+            const edge = document.createElement('a-entity');
+            edge.setAttribute('geometry', 'primitive: cylinder; radius: 0.007; height: ' + len + '; segmentsRadial: 12');
+            edge.setAttribute('material', 'color: #1e293b; roughness: 0.6; metalness: 0');
+            edge.object3D.position.copy(a.clone().add(b).multiplyScalar(0.5)).setZ(0.03);
+            edge.object3D.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+            root.appendChild(edge);
+          });
+        });
+        IDS.forEach(id => {
+          const n = TREE[id], p = toUnit(n.px, n.py), node = document.createElement('a-entity');
+          node.setAttribute('geometry', 'primitive: sphere; radius: ' + R + '; segmentsWidth: 32; segmentsHeight: 24');
+          node.setAttribute('material', 'color: ' + COLOR[n.role] + '; roughness: 0.35; metalness: 0.1');
+          node.object3D.position.set(p.x, p.y, 0.05);
+          const label = document.createElement('a-text');
+          label.setAttribute('value', id); label.setAttribute('align', 'center'); label.setAttribute('anchor', 'center');
+          label.setAttribute('color', '#ffffff'); label.setAttribute('width', 0.28); label.setAttribute('position', '0 0 0.045');
+          node.appendChild(label);
+          // Vùng chạm trong suốt, lớn hơn nút ~1,7 lần để dễ chạm trên điện thoại
+          const hit = document.createElement('a-entity');
+          hit.classList.add('clickable');
+          hit.setAttribute('geometry', 'primitive: sphere; radius: ' + (R * 1.7));
+          hit.setAttribute('material', 'opacity: 0; transparent: true; depthWrite: false');
+          hit.addEventListener('click', () => chonNut(id));
+          node.appendChild(hit);
+          root.appendChild(node); this.nodeEls[id] = node;
+        });
+        window.__nodeEls = this.nodeEls;
+      }
+    });
+
+    /* ---------------------------- Tiện ích ---------------------------- */
+    const $ = id => document.getElementById(id);
+    const NAMES = { NLR: 'Tiền tự (Gốc–Trái–Phải)', LNR: 'Trung tự (Trái–Gốc–Phải)', LRN: 'Hậu tự (Trái–Phải–Gốc)' };
+    const HINT = { NLR: 'Tiền tự: thăm gốc trước, rồi duyệt hết cây con trái, rồi cây con phải.',
+                   LNR: 'Trung tự: duyệt hết cây con trái, rồi thăm gốc, rồi cây con phải.',
+                   LRN: 'Hậu tự: duyệt cây con trái, rồi cây con phải, cuối cùng mới thăm gốc.' };
+    const ORDER = { NLR: ['V', 'L', 'R'], LNR: ['L', 'V', 'R'], LRN: ['L', 'R', 'V'] };
+    let run = null, quiz = null, frozen = false, dangThay = false, loiCamera = false, flashTimer = null;
+
+    function to(id, col, big) {
+      const el = window.__nodeEls && window.__nodeEls[id]; if (!el) return;
+      el.setAttribute('material', 'color', col); el.setAttribute('scale', big ? '1.25 1.25 1.25' : '1 1 1');
+    }
+    function xoaSang(da) { IDS.forEach(id => to(id, da && da.has(id) ? COLOR.da : COLOR[TREE[id].role], false)); }
+    function thongke() {
+      const la = IDS.filter(i => TREE[i].role === 'leaf').length, sau = Math.max(...IDS.map(i => TREE[i].depth));
+      return 'Cây có ' + IDS.length + ' nút, ' + la + ' lá, mức sâu nhất: ' + sau + '. Chạm vào một nút để xem thông tin.';
+    }
+    function dungHet() {
+      if (run) clearTimeout(run.timer); run = null; quiz = null; clearTimeout(flashTimer);
+      $('code').style.display = 'none'; $('stack').style.display = 'none'; $('thutu').textContent = '';
+    }
+    function chiSo(id) { // chiều cao của cây con gốc id (số mức)
+      const n = TREE[id]; return 1 + Math.max(n.left ? chiSo(n.left) : 0, n.right ? chiSo(n.right) : 0);
+    }
+
+    /* ---------------------------- Chạm vào nút ---------------------------- */
+    function chonNut(id) {
+      if (quiz && !quiz.done) { traLoi(id); return; }
+      dungHet(); xoaSang(); to(id, COLOR.hi, true);
+      const n = TREE[id];
+      $('thongtin').innerHTML = '<b>Nút ' + id + '</b> – ' + ROLE_TEXT[n.role] + ' (mức ' + n.depth + ')<br>' +
+        'Cha: ' + (n.parent || 'không có') + ' | Con trái: ' + (n.left || 'không có') + ' | Con phải: ' + (n.right || 'không có') +
+        '<br>Cây con gốc ' + id + ' có ' + chiSo(id) + ' mức';
+    }
+
+    /* ---------------- Duyệt: mô phỏng đệ quy thành danh sách sự kiện ---------------- */
+    function moPhong(kind) {
+      const ev = [], st = [];
+      (function go(id) {
+        st.push(id ? 'Duyet(' + id + ')' : 'Duyet(rỗng)');
+        if (!id) { ev.push({ line: 1, cur: null, stack: st.slice(), note: 'N rỗng → dừng, quay lại' }); st.pop(); return; }
+        ev.push({ line: 1, cur: id, stack: st.slice(), note: 'N = ' + id + ' khác rỗng, tiếp tục' });
+        ORDER[kind].forEach((a, k) => {
+          if (a === 'V') ev.push({ line: 2 + k, cur: id, visit: true, stack: st.slice(), note: 'Thăm nút ' + id });
+          else { ev.push({ line: 2 + k, cur: id, stack: st.slice(), note: 'Gọi Duyet cho con ' + (a === 'L' ? 'trái' : 'phải') + ' của ' + id });
+                 go(a === 'L' ? TREE[id].left : TREE[id].right); }
+        });
+        st.pop();
+      })(ROOT);
+      return ev;
+    }
+    function maGia(kind) {
+      const mo = { V: 'thăm N', L: 'Duyet(trái(N))', R: 'Duyet(phải(N))' };
+      return ['Duyet(N):', '  nếu N rỗng thì dừng'].concat(ORDER[kind].map(a => '  ' + mo[a]));
+    }
+    const delay = () => [2000, 1400, 900, 500, 250][$('tocdo').value - 1];
+
+    function batDauDuyet(kind) {
+      dungHet(); xoaSang();
+      run = { kind, ev: moPhong(kind), i: 0, vis: new Set(), order: [], playing: true, timer: null };
+      $('code').innerHTML = maGia(kind).map(s => '<span>' + s + '</span>').join('');
+      $('code').style.display = 'block'; $('stack').style.display = 'block';
+      $('thongtin').innerHTML = '<b>Duyệt ' + NAMES[kind] + '</b>';
+      capNhatNut(); tick();
+    }
+    function tick() {
+      if (!run) return; clearTimeout(run.timer);
+      if (run.i >= run.ev.length) { run.playing = false; capNhatNut(); return; }
+      const e = run.ev[run.i++];
+      if (e.visit) { run.vis.add(e.cur); run.order.push(e.cur); }
+      IDS.forEach(id => {
+        if (id === e.cur) to(id, e.visit ? COLOR.hi : COLOR.xet, true);
+        else to(id, run.vis.has(id) ? COLOR.da : COLOR[TREE[id].role], false);
+      });
+      [].forEach.call($('code').children, (s, k) => s.className = k === e.line ? 'act' : '');
+      $('stack').textContent = 'Ngăn xếp gọi: ' + e.stack.join(' → ');
+      $('thutu').textContent = run.order.join(' → ');
+      $('thongtin').innerHTML = '<b>Duyệt ' + NAMES[run.kind] + '</b><br>' + e.note;
+      if (run.i >= run.ev.length) { run.playing = false; $('thongtin').innerHTML += '<br>Xong! Thứ tự thăm: ' + run.order.join(' → '); capNhatNut(); }
+      else if (run.playing) run.timer = setTimeout(tick, delay());
+    }
+    function capNhatNut() { $('btnChay').textContent = run && run.playing ? '⏸ Tạm dừng' : '▶ Chạy'; }
+    function chayTamDung() {
+      if (!run) return;
+      if (run.playing) { run.playing = false; clearTimeout(run.timer); }
+      else { if (run.i >= run.ev.length) { batDauDuyet(run.kind); return; } run.playing = true; tick(); }
+      capNhatNut();
+    }
+    function buocTiep() {
+      if (!run) { $('thongtin').textContent = 'Chọn kiểu duyệt (Tiền tự, Trung tự, Hậu tự) trước.'; return; }
+      run.playing = false; clearTimeout(run.timer); tick(); capNhatNut();
+    }
+
+    /* ---------------------------- Đố vui ---------------------------- */
+    function batDauDoVui() {
+      dungHet(); xoaSang();
+      const kind = ['NLR', 'LNR', 'LRN'][Math.floor(Math.random() * 3)];
+      quiz = { kind, seq: moPhong(kind).filter(e => e.visit).map(e => e.cur), idx: 0, sai: 0, da: new Set(), done: false };
+      $('thongtin').innerHTML = '<b>Đố vui:</b> chạm các nút theo thứ tự <b>' + NAMES[kind] + '</b>';
+    }
+    function traLoi(id) {
+      const q = quiz;
+      if (id === q.seq[q.idx]) {
+        q.da.add(id); q.idx++; xoaSang(q.da); to(id, COLOR.hi, true);
+        $('thutu').textContent = q.seq.slice(0, q.idx).join(' → ');
+        if (q.idx >= q.seq.length) {
+          q.done = true; const diem = Math.max(0, 10 - 2 * q.sai);
+          $('thongtin').innerHTML = '🎉 <b>Hoàn thành!</b> Sai ' + q.sai + ' lần – Điểm: ' + diem + '/10. Bấm “Đố vui” để chơi lại.';
+        } else $('thongtin').innerHTML = '<b>Đúng!</b> Chạm nút tiếp theo (' + NAMES[q.kind] + ').';
+      } else {
+        q.sai++; to(id, COLOR.sai, true);
+        clearTimeout(flashTimer); flashTimer = setTimeout(() => { if (quiz === q) { xoaSang(q.da); } }, 450);
+        $('thongtin').innerHTML = '<b>Chưa đúng.</b> ' + HINT[q.kind];
+      }
+    }
+
+    function datLai() { dungHet(); xoaSang(); $('thongtin').textContent = thongke(); }
+
+    /* ---------------------------- Bảng điều khiển ---------------------------- */
+    function thuGon() {
+      const an = $('noidung').style.display !== 'none';
+      $('noidung').style.display = an ? 'none' : 'block'; $('thu').textContent = an ? '▴' : '▾';
+    }
+    function giuCoDinh() {
+      const o = $('cay').object3D, scene = document.querySelector('a-scene').object3D;
+      if (!frozen) {
+        if (!dangThay) { $('thongtin').textContent = 'Cần quét thấy ảnh đích trước khi giữ cố định.'; return; }
+        o.updateWorldMatrix(true, false); scene.attach(o); frozen = true; // cây đứng yên trên màn hình
+        $('btnKhoa').textContent = '🔓 Bỏ cố định';
+      } else {
+        $('target').object3D.attach(o); frozen = false; $('btnKhoa').textContent = '🔒 Giữ cố định';
+        if (!dangThay) hienTrangThai(false);
+      }
+    }
+
+    /* ---------------------------- Trạng thái quét & lỗi ---------------------------- */
+    const MEO = 'Giữ điện thoại cách ảnh khoảng 20–40 cm, đủ sáng, tránh chói và bóng đổ lên ảnh.';
+    function baoLoi(t) { loiCamera = true; const h = $('huongdan'); h.className = 'hud loi'; h.textContent = t; h.style.display = 'block'; h.style.opacity = 1; }
+    function hienTrangThai(thay) {
+      $('huongdan').style.display = (thay || frozen || loiCamera) ? (loiCamera ? 'block' : 'none') : 'block';
+      $('tieude').style.display = (thay || frozen) ? 'block' : 'none';
+      $('panel').style.display = (thay || frozen) ? 'block' : 'none';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.isSecureContext || !navigator.mediaDevices) {
+        baoLoi('Trang cần mở bằng HTTPS (hoặc localhost) thì mới dùng được camera. Hãy mở lại bằng đường link https://…');
+      }
+      const scene = document.querySelector('a-scene'), target = $('target');
+      scene.addEventListener('arReady', () => { if (!loiCamera) $('huongdan').innerHTML = 'Đưa camera hướng vào ảnh đích, giữ ảnh trong khung hình<br><small>' + MEO + '</small>'; });
+      scene.addEventListener('arError', () => baoLoi('Không mở được camera. Hãy cho phép trình duyệt dùng camera (biểu tượng ổ khoá cạnh thanh địa chỉ), đóng ứng dụng khác đang dùng camera, rồi tải lại trang.'));
+      target.addEventListener('targetFound', () => { dangThay = true; hienTrangThai(true); if (!$('thongtin').textContent) $('thongtin').textContent = thongke(); });
+      target.addEventListener('targetLost', () => { dangThay = false; if (!frozen) { hienTrangThai(false); datLai(); } });
+      $('thongtin').textContent = thongke();
+    });
+  </script>
+</body>
+</html>
