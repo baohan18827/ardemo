@@ -66,13 +66,13 @@ addEventListener('unhandledrejection',function(e){showErr((e.reason&&e.reason.me
 <div id="ar"></div>
 <div id="start"><h1>AR Cây nhị phân 3D</h1>
 <p>Đưa camera vào hình cây nhị phân (in hoặc vẽ tay, nét tối trên nền sáng). Web tự nhận diện nút – đường nối, dựng cây 3D và <b>khóa cây vừa quét</b> để bạn duyệt, thêm, xóa, tìm kiếm trên chính cây đó.</p>
-<p id="stt">⏳ Đang khởi động...</p><button id="bAR" disabled>Bắt đầu quét AR</button></div>
+<p style="color:#ffe08a;opacity:1">✨ Bản mới: kéo từng nút · dời cây · trò chơi duyệt cây · bỏ vòng tròn & mũi tên</p><p id="stt">⏳ Đang khởi động...</p><button id="bAR" disabled>Bắt đầu quét AR</button><button id="bDemo" disabled>🧪 Dùng thử cây mẫu (không cần camera)</button></div>
 <div id="top" class="gl"><span>TRẠNG THÁI AR: <b id="st"></b></span><span class="sep">|</span><span>CHẾ ĐỘ: <b id="mt"></b></span><span class="sp"></span>
 <select id="les"></select><select id="vw"><option value="tree">Cây 3D AR</option><option value="arr">Mảng 1 chiều T[]</option><option value="ptr">Con trỏ liên kết</option></select>
 <button id="bAna">Đo thông số</button><button id="bLock" class="or"></button><button id="bSet" title="Cấu hình AR">⚙</button><button id="bHelp" title="Trợ giúp">?</button></div>
 <div id="info" class="gl"></div>
-<div id="tools" class="gl">
-<button data-op="add">＋ Thêm nút</button><button data-op="del">－ Xóa nút</button><button data-op="search">🔍 Tìm kiếm</button><button data-op="upd">✎ Cập nhật</button><button data-op="seq">⇅ Tạo cây từ dãy A</button><button data-op="reset">↻ Khởi tạo / Reset</button><select id="dm" title="Chế độ khi kéo bằng 1 ngón"><option value="mov">✥ Kéo: Di chuyển cây</option><option value="rot">⟳ Kéo: Xoay cây</option><option value="node">● Kéo: Từng nút</option></select><button id="bPos">⟲ Đặt lại góc nhìn</button><button id="bGame" class="gr">🎮 Trò chơi duyệt cây</button></div>
+<div id="tools" class="gl"><button id="bGame" class="gr">🎮 Trò chơi duyệt cây</button><select id="dm" title="Chế độ khi kéo bằng 1 ngón"><option value="mov">✥ Kéo: Di chuyển cây</option><option value="rot">⟳ Kéo: Xoay cây</option><option value="node">● Kéo: Từng nút</option></select><button id="bPos">⟲ Đặt lại góc nhìn</button>
+<button data-op="add">＋ Thêm nút</button><button data-op="del">－ Xóa nút</button><button data-op="search">🔍 Tìm kiếm</button><button data-op="upd">✎ Cập nhật</button><button data-op="seq">⇅ Tạo cây từ dãy A</button><button data-op="reset">↻ Khởi tạo / Reset</button></div>
 <div id="trav" class="gl"><div class="r"><b id="tt"></b><select id="tk"></select><span class="sp"></span>
 <button id="bPv">⏮</button><button id="bPlay">▶</button><button id="bNx">⏭</button>
 <select id="spd"><option value="0.5">0.5x</option><option value="1" selected>1.0x</option><option value="1.5">1.5x</option><option value="2">2.0x</option></select></div>
@@ -346,17 +346,17 @@ async function readDigits(src,C,f,map){         // đọc số trong từng nút
   Object.keys(map).forEach(i=>{if(v[i]==null){while(used.has(nx))nx++;v[i]=nx;used.add(nx)}map[i].v=v[i]});
   clear();refresh();const a=lay().map(e=>e.n),ino=[];(function f(n){if(n){f(n.l);ino.push(n.v);f(n.r)}})(root);
   toast(`🔤 Đã đọc ${got}/${n} số`+(ino.every((x,i)=>!i||x>ino[i-1])&&n>1?' · cây này cũng là BST':''))}
-async function loadLibs(){try{THREE=await import('three');stt('✅ Sẵn sàng');$('#bAR').disabled=false}catch(e){stt('❌ Không tải được Three.js ('+(e&&e.message||e)+'). Kiểm tra mạng rồi tải lại trang.')}}
+async function loadLibs(){try{THREE=await import('three');stt('✅ Sẵn sàng');$('#bAR').disabled=$('#bDemo').disabled=false}catch(e){stt('❌ Không tải được Three.js ('+(e&&e.message||e)+'). Kiểm tra mạng rồi tải lại trang.')}}
 loadLibs();
-$('#bAR').onclick=async()=>{
+const startAR=async(demo)=>{
   $('#err').style.display='none';let stream,vid,renderer,ovl,running=true;
   try{
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Trình duyệt đang chặn camera. Hãy mở bằng https:// hoặc http://localhost, dùng Chrome hoặc Safari, không dùng trình duyệt trong Zalo/Facebook.');
-    if(!(await navigator.mediaDevices.enumerateDevices()).some(d=>d.kind=='videoinput'))throw new Error('Thiết bị này không có camera.');
+    if(!demo&&(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia))throw new Error('Trình duyệt đang chặn camera. Hãy mở bằng https:// hoặc http://localhost, dùng Chrome hoặc Safari, không dùng trình duyệt trong Zalo/Facebook.');
+    if(!demo&&!(await navigator.mediaDevices.enumerateDevices()).some(d=>d.kind=='videoinput'))throw new Error('Thiết bị này không có camera.');
     $('#start').style.display='none';document.body.classList.add('scan');
     load('📷 Đang bật camera...<br><small>Hãy bấm <b>Cho phép</b> khi trình duyệt hỏi quyền camera</small>');
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
-    vid=document.createElement('video');vid.playsInline=true;vid.muted=true;vid.srcObject=stream;await vid.play();load('');
+    if(!demo)stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    vid=document.createElement('video');vid.playsInline=true;vid.muted=true;if(!demo){vid.srcObject=stream;await vid.play()}load('');
     vid.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
     renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));
     ovl=document.createElement('canvas');const og=ovl.getContext('2d');
@@ -468,6 +468,9 @@ $('#bAR').onclick=async()=>{
     lockFn=()=>{if(mode!='track')return toast('Chưa nhận diện được cây để khóa');locked=!locked;isLocked=locked;document.body.classList.toggle('locked',locked);say('');toast(locked?'🔒 Đã khóa — cây giữ nguyên vị trí trên màn hình':'🔓 Đã mở khóa — cây bám theo hình trở lại');ui()};
     rescanFn=()=>{mode='scan';locked=false;isLocked=false;stable=0;lastSig='';rig.visible=false;document.body.classList.remove('locked');document.body.classList.add('scan');say('🔍 Đang quét lại…');ui()};
     ui();tick();
+    if(demo){mode='track';locked=true;isLocked=true;M={pts:[],cx:SW/2,cy:SH/2,pxS:Math.min(SW,SH)*.8};rig.visible=true;document.body.classList.remove('scan');say('');root=null;
+      [8,3,10,1,6,14,4,7,13].forEach(x=>{if(!root){root=mk(x,{});return}let c=root;for(;;){const d=x<c.v?'l':'r';if(!c[d]){c[d]=mk(x,{});break}c=c[d]}});
+      S.seq=lvl().map(n=>n.v);S.orig=clone(root);S.sel=null;S.grow=1;rescanFn=()=>toast('Chế độ thử không có camera — tải lại trang để quét thật');toast('Chế độ thử: cây mẫu, không cần camera');refresh()}
     // ---- chạm chọn nút · kéo xoay 360° · chụm thu phóng ----
     const ray=new THREE.Raycaster(),v2=new THREE.Vector2(),dom=renderer.domElement,pts=new Map();let moved=0,pd=0;
     const dist=()=>{const q=[...pts.values()];return Math.hypot(q[0][0]-q[1][0],q[0][1]-q[1][1])};
@@ -492,6 +495,7 @@ $('#bAR').onclick=async()=>{
     showErr(((err&&err.message)||err||'Camera bị từ chối hoặc không khả dụng')+'');
   }
 };
+$('#bAR').onclick=()=>startAR(0);$('#bDemo').onclick=()=>startAR(1);
 const rescanBtn=document.createElement('button');rescanBtn.id='bRe';rescanBtn.textContent='🔍 Quét lại';rescanBtn.onclick=()=>{if(GM.on)gStop();rescanFn&&rescanFn()};$('#top').insertBefore(rescanBtn,$('#bSet'));
 ui();
 </script>
