@@ -46,14 +46,14 @@ body.game #gm{display:block}body.game #tools,body.game #trav,body.game #code,bod
 #start p{max-width:520px;margin:0;font-weight:400;opacity:.85}#start h1{margin:0;font-size:30px;color:#4fe3ff}
 #start button{padding:12px 26px;background:linear-gradient(#ff8a2a,#e5600d);font-weight:800}#start button:disabled{opacity:.5}
 #start #bDemo{background:#ffffff1a;font-weight:600;padding:9px 18px}
-#hud{position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:8;background:#0e1822e6;border:1px solid #4fe3ff;padding:9px 16px;border-radius:999px;text-align:center;max-width:92vw;display:none}
+#hud{position:fixed;top:var(--ti,84px);left:50%;transform:translateX(-50%);z-index:8;background:#0e1822e6;border:1px solid #4fe3ff;padding:6px 12px;border-radius:12px;text-align:center;max-width:90vw;font-size:12px;display:none;pointer-events:none}
 #sweep{position:fixed;left:8%;right:8%;height:3px;top:20%;z-index:7;border-radius:3px;background:linear-gradient(90deg,transparent,#4fe3ff,#3dff7a,transparent);box-shadow:0 0 14px #4fe3ff;display:none;pointer-events:none;animation:sw 2.4s ease-in-out infinite alternate}
 body.scan #sweep{display:block}@keyframes sw{to{top:78%}}
 body.hp #tools,body.hp #trav,body.hp #info,body.hp #code{display:none!important}
 body.scan #bPanel,body.scan #bSnap,body.scan #bUp{display:inline-block!important}
 #bSnap,#bUp{display:none}
 body.scan #tools,body.scan #trav,body.scan #info,body.scan #code,body.scan #les,body.scan #vw,body.scan #bAna,body.scan #bLock,body.scan #bRe,body.scan #bMv{display:none!important}
-#toast{width:max-content;max-width:86vw;text-align:center;position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#12303f;padding:10px 20px;border-radius:999px;font-weight:700;z-index:15;display:none}
+#toast{width:max-content;max-width:86vw;text-align:center;position:fixed;bottom:calc(var(--tb,120px) + 64px);left:50%;transform:translateX(-50%);background:#fff;color:#12303f;padding:7px 14px;border-radius:12px;font-size:13px;font-weight:700;z-index:15;display:none;pointer-events:none}
 #err{position:fixed;left:8px;right:8px;top:8px;z-index:20;background:#ff4d6d;color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;display:none;white-space:pre-wrap}
 #load{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;background:#0e1822e6;padding:14px 22px;border-radius:18px;text-align:center;display:none;max-width:86vw}
 .pt{position:absolute;top:4px;right:6px;padding:1px 8px;font-size:13px;line-height:18px;z-index:2}
@@ -65,9 +65,8 @@ body.scan #tools,body.scan #trav,body.scan #info,body.scan #code,body.scan #les,
 #tools.mini{right:auto!important}
 #trav:not(.mini) .pt{top:-15px;right:14px;padding:0 9px;border-radius:8px 8px 0 0;background:#0e1822e6}
 #trav.mini{left:auto!important}
-#bRs{display:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;top:calc(var(--ti,84px) + 36px);z-index:6;padding:6px 14px}
-body.cam:not(.scan):not(.game):not(.hp) #bRs{display:block}
-@media(max-width:760px){
+#mo.c h3,#mo.c .b{display:none}#mo.c>div{padding:10px 12px}
+@media(max-width:760px){.tx{display:none}#top>span:not(.sp){display:none}#les{max-width:50vw}#vw{max-width:36vw}
  #top{font-size:12px;gap:6px;padding:6px 8px}button,select{padding:6px 9px}
  #info{width:150px;padding:8px 10px}#info div{font-size:12px}
  #tools{flex-direction:row;overflow-x:auto;overflow-y:hidden;width:auto;right:8px;bottom:var(--tb,120px);max-height:none}#tools button{white-space:nowrap}
@@ -89,7 +88,7 @@ addEventListener('unhandledrejection',function(e){showErr((e.reason&&e.reason.me
 <p style="font-size:13px">💡 Mẹo quét nét: đủ sáng · đưa máy cách giấy ~30–40cm · giữ máy yên 1–2 giây · vẽ nét đậm, khép kín vòng tròn. Ảnh mờ thì bấm <b>📸 Chụp quét</b> hoặc <b>🖼 Tải ảnh</b> (chụp bằng camera gốc cho nét).</p><p id="stt">⏳ Đang khởi động...</p><button id="bAR" disabled>Bắt đầu quét AR</button><button id="bDemo" disabled>⌨ Không cần camera (nhập cây bằng chuỗi)</button></div>
 <div id="top" class="gl"><span>TRẠNG THÁI AR: <b id="st"></b></span><span class="sep">|</span><span>CHẾ ĐỘ: <b id="mt"></b></span><span class="sp"></span>
 <select id="les"></select><select id="vw"><option value="tree">Cây 3D AR</option><option value="arr">Mảng 1 chiều T[]</option><option value="ptr">Con trỏ liên kết</option></select>
-<button id="bAna">Đo thông số</button><button id="bMv"></button><button id="bLock" class="or"></button><button id="bPanel" title="Ẩn/hiện các bảng">☰</button><button id="bSnap" title="Chụp 1 ảnh nét để nhận diện">📸 Chụp quét</button><button id="bUp" title="Tải ảnh có sẵn">🖼 Tải ảnh</button><button id="bSet" title="Cấu hình AR">⚙</button><button id="bHelp" title="Trợ giúp">?</button></div>
+<button id="bAna">📐<span class="tx"> Đo thông số</span></button><button id="bMv"></button><button id="bLock" class="or"></button><button id="bPanel" title="Ẩn/hiện các bảng">☰</button><button id="bSnap" title="Chụp 1 ảnh nét để nhận diện">📸<span class="tx"> Chụp quét</span></button><button id="bUp" title="Tải ảnh có sẵn">🖼<span class="tx"> Tải ảnh</span></button><button id="bSet" title="Cấu hình AR">⚙</button><button id="bHelp" title="Trợ giúp">?</button></div>
 <div id="info" class="gl"></div><div id="code" class="gl"></div><div id="gm" class="gl"></div>
 <div id="tools" class="gl"><button class="pt" data-hide="tools"><span class="a">—</span><span class="b">🧰 Chức năng</span></button>
 <button data-op="ad">＋/－ Thêm / Xóa nút</button><button data-op="search">🔍 Tìm kiếm</button><button data-op="upd">✎ Cập nhật</button><button data-op="seq">⇅ Tạo cây từ dãy A</button><button data-op="str">⌨ Nhập cây</button><button data-op="lay">⇲ Xếp lại nút & góc nhìn</button><button data-op="game">🎮 Chơi game</button></div>
@@ -98,7 +97,7 @@ addEventListener('unhandledrejection',function(e){showErr((e.reason&&e.reason.me
 <select id="spd"><option value="0.5">0.5x</option><option value="1" selected>1.0x</option><option value="1.5">1.5x</option><option value="2">2.0x</option></select></div>
 <div id="out"></div><div id="nt"></div></div>
 <div id="mo"><div class="gl"><h3 id="mh"></h3><div id="mbd"></div><div class="b"><button id="mx">Đóng</button><button id="mok" class="or"></button></div></div></div>
-<button id="bRs" class="or">↻ Quét lại</button><div id="sweep"></div><div id="hud"></div><div id="toast"></div><div id="err"></div><div id="load"></div>
+<div id="sweep"></div><div id="hud"></div><div id="toast"></div><div id="err"></div><div id="load"></div>
 
 <script type="module">
 let THREE,lockFn=null,rescanFn=null,isLocked=false,sync=()=>{},scanId=0,cf=0;
@@ -271,9 +270,9 @@ $('#bAna').onclick=OP.ana;
 const MVL={pan:'✋ Di chuyển cây',orbit:'🔄 Xoay cây',node:'👆 Kéo từng nút'};
 $('#bMv').onclick=()=>modal('Chế độ kéo','<p>Chọn cách kéo trên màn hình:</p>'+Object.keys(MVL).map(k=>`<button class="bt ${S.mv==k?'or':''}" data-x="mv_${k}">${MVL[k]}${S.mv==k?' ✓':''}</button>`).join(''));
 Object.keys(MVL).forEach(k=>X['mv_'+k]=()=>{S.mv=k;close();ui()});
-const confirmCard=t=>{cf=1;modal('Kết quả quét','<p>'+esc(t)+'</p><button class="bt or" data-x="cfok">✔ Đúng, dùng cây này</button><button class="bt" data-x="cfre">↻ Quét lại</button><button class="bt" data-x="cfed">✎ Sửa cây (nhập lại chuỗi / số)</button>',null);$('#mo').className='q'};
+const confirmCard=t=>{cf=1;modal('','<p style="margin:0 0 8px;font-size:13px">'+esc(t)+'</p><div style="display:flex;gap:6px"><button class="or" data-x="cfok" style="flex:1">✔ Đúng</button><button data-x="cfre" style="flex:1">↻ Quét lại</button><button data-x="cfed" style="flex:1">✎ Sửa</button></div>',null);$('#mo').className='q c'};
 X.cfok=()=>{cf=0;close()};X.cfre=()=>{cf=0;close();rescanFn&&rescanFn()};X.cfed=()=>{cf=0;close();OP.str()};
-$('#bRs').onclick=()=>rescanFn&&rescanFn();
+
 $('#les').innerHTML=LES.map((l,i)=>`<option value="${i}">${l.n}</option>`).join('');
 $('#les').onchange=e=>{S.lesson=+e.target.value;S.sel=null;if(S.lesson==4)S.kind='in';norm();clear();refresh()};
 $('#vw').onchange=e=>{S.view=e.target.value;sync.w=0;refresh()};
@@ -284,15 +283,15 @@ $('#bPlay').onclick=()=>{if(S.run){stopT();return ui()}if(trav())startT()};
 $('#bNx').onclick=()=>{stopT();if(!S.steps.length||S.steps[0].t!='trav'){if(!trav())return}go(S.i+1)};
 $('#bPv').onclick=()=>{stopT();go(S.i-1)};
 $('#bLock').onclick=()=>lockFn?lockFn():toast('Chưa bật AR');
-const HID={info:0,code:0,tools:0,trav:0};
+const SM=matchMedia('(max-width:760px)').matches,HID={info:SM?1:0,code:SM?1:0,tools:0,trav:0};
 const PT=(k,t)=>`<button class="pt" data-hide="${k}"><span class="a">—</span><span class="b">${t}</span></button>`;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-hide]');if(b){HID[b.dataset.hide]^=1;ui()}});
 const KS=[['pre','Duyệt trước (Pre-order)'],['in','Duyệt giữa (In-order)'],['post','Duyệt sau (Post-order)'],['rin','Duyệt ngược (Reverse inorder)']];
 function ui(){
   const L=LES[S.lesson],sc=document.body.classList.contains('scan'),st=S.steps[S.i];
   $('#st').textContent=sc?'ĐANG QUÉT':isLocked?'ĐÃ KHÓA':'ĐÃ HOẠT ĐỘNG';$('#st').style.color=sc||isLocked?'#ffc93c':'#3dff7a';$('#mt').textContent=L.m;
-  const b=$('#bLock');b.textContent=isLocked?'🔓 MỞ KHÓA':'🔒 KHÓA CÂY';b.className=isLocked?'gr':'or';
-  $('#bMv').textContent={pan:'✋ Kéo: di chuyển cây',orbit:'🔄 Kéo: xoay cây',node:'👆 Kéo: từng nút'}[S.mv];
+  const b=$('#bLock');b.innerHTML=isLocked?'🔓<span class="tx"> MỞ KHÓA</span>':'🔒<span class="tx"> KHÓA CÂY</span>';b.className=isLocked?'gr':'or';
+  const mvv={pan:['✋','di chuyển cây'],orbit:['🔄','xoay cây'],node:['👆','từng nút']}[S.mv];$('#bMv').innerHTML=mvv[0]+'<span class="tx"> Kéo: '+mvv[1]+'</span>';
   $('#les').value=S.lesson;$('#vw').value=S.view;
   document.querySelectorAll('[data-op]').forEach(x=>x.style.display=L.ops.split(' ').includes(x.dataset.op)?'':'none');
   $('#bAna').style.display=L.ops.includes('ana')?'':'none';
@@ -688,7 +687,7 @@ async function startAR(useCam){
     showErr(((err&&err.message)||err||'Camera bị từ chối hoặc không khả dụng')+'');
   }
 }
-const rescanBtn=document.createElement('button');rescanBtn.id='bRe';rescanBtn.textContent='🔍 Quét lại';rescanBtn.onclick=()=>rescanFn&&rescanFn();$('#top').insertBefore(rescanBtn,$('#bSet'));
+const rescanBtn=document.createElement('button');rescanBtn.id='bRe';rescanBtn.innerHTML='🔍<span class="tx"> Quét lại</span>';rescanBtn.className='or';rescanBtn.onclick=()=>rescanFn&&rescanFn();$('#top').insertBefore(rescanBtn,$('#bSet'));
 ui();
 </script>
 </body>
