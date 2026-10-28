@@ -56,6 +56,15 @@ body.scan #tools,body.scan #trav,body.scan #info,body.scan #code,body.scan #les,
 #toast{width:max-content;max-width:86vw;text-align:center;position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#12303f;padding:10px 20px;border-radius:999px;font-weight:700;z-index:15;display:none}
 #err{position:fixed;left:8px;right:8px;top:8px;z-index:20;background:#ff4d6d;color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;display:none;white-space:pre-wrap}
 #load{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;background:#0e1822e6;padding:14px 22px;border-radius:18px;text-align:center;display:none;max-width:86vw}
+.pt{position:absolute;top:4px;right:6px;padding:1px 8px;font-size:13px;line-height:18px;z-index:2}
+.pt .b{display:none}
+.mini>*:not(.pt){display:none!important}
+.mini{width:auto!important;max-height:none!important;overflow:visible!important}
+.mini .pt{position:static}.mini .pt .a{display:none}.mini .pt .b{display:inline}
+#tools .pt{position:static;align-self:flex-start}
+#tools.mini{right:auto!important}
+#trav:not(.mini) .pt{top:-15px;right:14px;padding:0 9px;border-radius:8px 8px 0 0;background:#0e1822e6}
+#trav.mini{left:auto!important}
 @media(max-width:760px){
  #top{font-size:12px;gap:6px;padding:6px 8px}button,select{padding:6px 9px}
  #info{width:150px;padding:8px 10px}#info div{font-size:12px}
@@ -80,9 +89,9 @@ addEventListener('unhandledrejection',function(e){showErr((e.reason&&e.reason.me
 <select id="les"></select><select id="vw"><option value="tree">Cây 3D AR</option><option value="arr">Mảng 1 chiều T[]</option><option value="ptr">Con trỏ liên kết</option></select>
 <button id="bAna">Đo thông số</button><button id="bMv"></button><button id="bLock" class="or"></button><button id="bPanel" title="Ẩn/hiện các bảng">☰</button><button id="bSnap" title="Chụp 1 ảnh nét để nhận diện">📸 Chụp quét</button><button id="bUp" title="Tải ảnh có sẵn">🖼 Tải ảnh</button><button id="bSet" title="Cấu hình AR">⚙</button><button id="bHelp" title="Trợ giúp">?</button></div>
 <div id="info" class="gl"></div><div id="code" class="gl"></div><div id="gm" class="gl"></div>
-<div id="tools" class="gl">
-<button data-op="ad">＋/－ Thêm / Xóa nút</button><button data-op="search">🔍 Tìm kiếm</button><button data-op="upd">✎ Cập nhật</button><button data-op="seq">⇅ Tạo cây từ dãy A</button><button data-op="str">⌨ Nhập cây (chuỗi)</button><button data-op="vals">🔢 Nhập số các nút</button><button data-op="lay">⇲ Xếp lại nút & góc nhìn</button><button data-op="game">🎮 Chơi game</button><button data-op="reset">↻ Khởi tạo / Reset</button></div>
-<div id="trav" class="gl"><div class="r"><b id="tt"></b><select id="tk"></select><span class="sp"></span>
+<div id="tools" class="gl"><button class="pt" data-hide="tools"><span class="a">—</span><span class="b">🧰 Chức năng</span></button>
+<button data-op="ad">＋/－ Thêm / Xóa nút</button><button data-op="search">🔍 Tìm kiếm</button><button data-op="upd">✎ Cập nhật</button><button data-op="seq">⇅ Tạo cây từ dãy A</button><button data-op="str">⌨ Nhập cây</button><button data-op="lay">⇲ Xếp lại nút & góc nhìn</button><button data-op="game">🎮 Chơi game</button></div>
+<div id="trav" class="gl"><button class="pt" data-hide="trav"><span class="a">—</span><span class="b">▶ Mô phỏng</span></button><div class="r"><b id="tt"></b><select id="tk"></select><span class="sp"></span>
 <button id="bPv">⏮</button><button id="bPlay">▶</button><button id="bNx">⏭</button>
 <select id="spd"><option value="0.5">0.5x</option><option value="1" selected>1.0x</option><option value="1.5">1.5x</option><option value="2">2.0x</option></select></div>
 <div id="out"></div><div id="nt"></div></div>
@@ -101,7 +110,7 @@ const rn=a=>a[Math.random()*a.length|0],sh=a=>[...a].sort(()=>Math.random()-.5);
 // ================= DỮ LIỆU CÂY (chính là cây vừa quét) =================
 let nid=1,root=null;
 const mk=(v,o)=>Object.assign({v,m:'',p:0,c:'',t:''},o,{id:nid++,l:null,r:null});
-const XT=' str vals lay game';
+const XT=' str lay game';
 const LES=[
  {n:'Cây tổng quát',m:'CÂY TỔNG QUÁT',bst:0,ops:'ad search upd reset ana'+XT},
  {n:'Bài 6: Cây nhị phân & khái niệm cơ bản',m:'BÀI 6 · CÂY NHỊ PHÂN',bst:0,ops:'reset'+XT},
@@ -149,7 +158,7 @@ function adopt(tr,C,M){                            // kết quả nhận diện 
 function afterScan(){                          // sau khi đọc số: chốt dữ liệu cây
   const seen=new Set();let fix=0;inord().forEach(n=>{while(seen.has(n.v)){n.v++;fix++}seen.add(n.v)});
   S.seq=lvl().map(n=>n.v);S.orig=clone(root);norm();clear();refresh();
-  toast(fix?'⚠ Có số trùng nên đã tự đổi — kiểm tra bằng 🔢 Nhập số các nút':'✅ Cây đã sẵn sàng — dùng các nút bên dưới để thao tác')}
+  toast(fix?'⚠ Có số trùng nên đã tự đổi — kiểm tra bằng ⌨ Nhập cây':'✅ Cây đã sẵn sàng — dùng các nút bên dưới để thao tác')}
 
 // ================= MÃ GIẢ + PYTHON (khớp từng dòng với bước mô phỏng) =================
 const NM={pre:'preorder',in:'inorder',post:'postorder',rin:'reverseorder'},OR={pre:'vlr',in:'lvr',post:'lrv',rin:'rvl'},TNm={pre:'duyệt trước',in:'duyệt giữa',post:'duyệt sau',rin:'duyệt ngược'};
@@ -160,7 +169,7 @@ CODE.sloop={gia:['TÌM(T, v):','  k ← 0','  lặp khi T[k] khác rỗng và T[
 CODE.ins={gia:['CHÈN(T, v):','  k ← 0 (gốc)','  lặp khi T[k] khác rỗng:','    nếu v = T[k]: dừng (đã có khoá)','    k ← con trái nếu v < T[k], ngược lại con phải','  nếu k vượt cỡ mảng: thêm các nút None','  T[k] ← v'],py:['def Tree_Insert(T,v):','    k = 0','    while k < len(T) and T[k] != None:','        if v == T[k]: return','        k = left(k) if v < T[k] else right(k)','    if k >= len(T): T.extend([None]*(k-len(T)+1))','    T[k] = v']};
 function drawCode(){const el=$('#code');if(!S.showCode){el.style.display='none';return}
   const k=S.steps.length&&S.ck?S.ck:S.kind,L=(CODE[k]||CODE.pre)[S.lang],st=S.steps[S.i];el.style.display='';
-  el.innerHTML=`<div class="tb"><button data-lg="gia" class="${S.lang=='gia'?'on':''}">Mã giả</button><button data-lg="py" class="${S.lang=='py'?'on':''}">Python</button></div>`+L.map((t,i)=>`<div class="ln${st&&S.ck==k&&st.l===i?' on':''}">${esc(t)}</div>`).join('')}
+  el.innerHTML=PT('code','{ } Mã')+`<div class="tb"><button data-lg="gia" class="${S.lang=='gia'?'on':''}">Mã giả</button><button data-lg="py" class="${S.lang=='py'?'on':''}">Python</button></div>`+L.map((t,i)=>`<div class="ln${st&&S.ck==k&&st.l===i?' on':''}">${esc(t)}</div>`).join('')}
 $('#code').addEventListener('click',e=>{const b=e.target.closest('[data-lg]');if(b){S.lang=b.dataset.lg;drawCode()}});
 
 // ================= BƯỚC MÔ PHỎNG =================
@@ -199,13 +208,14 @@ function modal(t,h,ok,txt){$('#mo').className='';$('#mh').textContent=t;$('#mbd'
 const close=()=>{$('#mo').style.display='none';$('#mo').className='';MOK=null};
 $('#mok').onclick=()=>{if(MOK&&MOK()===false)return;close();refresh()};$('#mx').onclick=close;
 const X={};$('#mbd').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(b&&X[b.dataset.x])X[b.dataset.x]()});
-$('#mbd').addEventListener('input',e=>{const t=e.target;if(t.id=='sb')S.bright=+t.value;if(t.id=='ss')S.size=+t.value;if(t.id=='sn')S.snd=t.checked;sync()});
+$('#mbd').addEventListener('input',e=>{const t=e.target;if(t.id=='im')imSet(t.value);if(t.id=='sb')S.bright=+t.value;if(t.id=='ss')S.size=+t.value;if(t.id=='sn')S.snd=t.checked;sync()});
 const F=(id,l,v='',ty='text')=>`<label>${l}</label><input id="${id}" type="${ty}" value="${esc(v)}">`;
 function fields(n){const f=kf();return f=='m'?F('f1','Tên món',n?n.m:'')+F('f2','Giá (nghìn đồng)',n?n.p:40,'number'):f=='c'?F('f1','Tên liên hệ',n?n.c:'')+F('f2','Số điện thoại',n?n.t:'09'):F('f1','Khóa v',n?n.v:'','number')}
 function recFrom(){const f=kf(),a=$('#f1').value.trim(),b=$('#f2')?$('#f2').value.trim():'';
   if(!a){toast('Hãy nhập dữ liệu');return null}
   if(f=='v'){if(!Number.isFinite(+a)){toast('Khóa phải là số');return null}return{v:+a}}
   return f=='m'?{v:nextV(),m:a,p:+b||0}:{v:nextV(),c:a,t:b}}
+const imSet=m=>{$('#im').value=m;$('#f1l').textContent=m=='vals'?'Giá trị theo từng mức, trái → phải ('+lvl().length+' số, cách nhau bởi dấu cách)':'Dạng v(trái,phải) — ví dụ 1(2(3(5,6),4),) ; thiếu con thì bỏ số';$('#f1').value=m=='vals'?lvl().map(n=>n.v).join(' '):(treeStr(root)||'1(2(3(5,6),4),)')};
 const OP={
  ad(){modal('Thêm / Xóa nút','<p>Xóa hoặc cập nhật: chạm chọn nút trên cây trước.</p><button class="bt or" data-x="ad1">＋ Thêm nút</button><button class="bt or" data-x="ad2">－ Xóa nút đang chọn</button>')},
  add(){modal('Thêm nút',fields()+(!LES[S.lesson].bst&&root?'<label>Gắn vào nút đang chọn (chạm một nút trên cây)</label><select id="f3"><option value="l">Con trái</option><option value="r">Con phải</option></select>':''),()=>{
@@ -228,13 +238,13 @@ const OP={
    S.seq=A;clear();root=null;S.sel=null;S.grow=0;sync();let i=0;
    const t=setInterval(()=>{if(i>=A.length){clearInterval(t);S.kind='in';ui();return toast('Xong! Bấm ▶ để Duyệt giữa → dãy tăng dần')}
      const x=A[i++];if(!root)root=mk(x,{});else{let c=root;for(;;){const d=x<c.v?'l':x>c.v?'r':'';if(!d)break;if(!c[d]){c[d]=mk(x,{});break}c=c[d]}}refresh();beep(400+i*30)},520)},'Tạo cây')},
- str(){modal('Nhập cây bằng chuỗi',F('f1','Dạng v(trái,phải) — ví dụ 1(2(3(5,6),4),) ; để trống con thì bỏ số',treeStr(root)||'1(2(3(5,6),4),)'),()=>{
+ str(m){const has=!!root;modal('Nhập cây',`<label>Nhập theo</label><select id="im" style="width:100%"><option value="str">Chuỗi cấu trúc cây v(trái,phải)</option>${has?'<option value="vals">Chỉ đổi số các nút (giữ hình cây)</option>':''}</select><label id="f1l"></label><input id="f1" type="text">`+(has?'<label>Hoặc tạo nhanh từ các số hiện có</label><div style="display:flex;gap:6px;flex-wrap:wrap"><button data-x="rand">🎲 Ngẫu nhiên</button><button data-x="deg">📏 Suy biến</button><button data-x="bal">⚖ Cân bằng</button><button data-x="orig">↩ Cây quét ban đầu</button></div>':''),()=>{
+   if($('#im').value=='vals'){const A=$('#f1').value.split(/[\s,;]+/).filter(Boolean).map(Number),L=lvl();if(A.length!=L.length||A.some(x=>!Number.isFinite(x))){toast('Cần đúng '+L.length+' số');return false}
+     L.forEach((n,i)=>n.v=A[i]);S.orig=clone(root);S.seq=A.slice();norm();clear();return}
    const t=parseStr($('#f1').value);if(!t){toast('Chuỗi chưa đúng, ví dụ: 1(2,3)');return false}
    const nn=(function c(n){return n?1+c(n.l)+c(n.r):0})(t);if(nn>31){toast('Tối đa 31 nút');return false}
-   root=t;S.sel=null;S.orig=clone(root);S.seq=lvl().map(n=>n.v);S.grow=1;clear();norm()},'Dựng cây')},
- vals(){if(!root)return toast('Cây rỗng');modal('Nhập số các nút',F('f1','Giá trị theo từng mức, trái → phải ('+lvl().length+' số, cách nhau bởi dấu cách)',lvl().map(n=>n.v).join(' ')),()=>{
-   const A=$('#f1').value.split(/[\s,;]+/).filter(Boolean).map(Number),L=lvl();if(A.length!=L.length||A.some(x=>!Number.isFinite(x))){toast('Cần đúng '+L.length+' số');return false}
-   L.forEach((n,i)=>n.v=A[i]);S.orig=clone(root);S.seq=A.slice();norm();clear()},'Áp dụng')},
+   root=t;S.sel=null;S.orig=clone(root);S.seq=lvl().map(n=>n.v);S.grow=1;clear();norm()},'Áp dụng');imSet(m=='vals'&&root?'vals':'str')},
+ vals(){OP.str('vals')},
  lay(){inord().forEach(n=>delete n.P);Object.assign(S,{px:0,py:0,roll:0,yaw:0,pitch:0,zoom:1,grow:0});clear();refresh();toast('Đã xếp lại nút và góc nhìn')},
  code(){S.showCode=!S.showCode;ui()},
  quiz(){newQ();drawQ()},
@@ -253,10 +263,12 @@ const laser=s=>{close();let n=root;const out=[],st=[];while(n){out.push(n.id);st
   const z=st[st.length-1];z.res='ok';z.note=(s=='l'?'Nút nhỏ nhất (trái tận cùng): ':'Nút lớn nhất (phải tận cùng): ')+disp(n);setSteps(st)};
 X.min=()=>laser('l');X.max=()=>laser('r');
 $('#bSet').onclick=()=>modal('Cấu hình AR',`<label>Độ sáng hiệu ứng</label><input id="sb" type="range" min=".4" max="2" step=".1" value="${S.bright}"><label>Kích thước cây 3D</label><input id="ss" type="range" min=".5" max="1.8" step=".05" value="${S.size}"><label><input id="sn" type="checkbox" style="width:auto" ${S.snd?'checked':''}> Âm thanh tương tác</label>`);
-$('#bHelp').onclick=()=>modal('Trợ giúp',`<p><span class="hand">👆</span> Chạm một nút để xem thông tin. <b>Kéo một nút</b> để đặt nó ở vị trí khác. Kéo vào chỗ trống để <b>dời cả cây</b> (hoặc bấm nút "Kéo" trên thanh trên để chuyển sang <b>xoay 3D</b>).<br>Hai ngón: chụm để thu/phóng, vặn để xoay cây.<br>🔒 Khóa cây: giữ cây tại chỗ; 🔓 mở khóa để cây bám theo hình giấy.</p><p><b style="color:#f5b92e">●</b> Nút gốc &nbsp;<b style="color:#19b6c9">●</b> Nút nhánh &nbsp;<b style="color:#2bd94a">●</b> Nút lá<br><b style="color:#ff7a1a">●</b> Đang duyệt &nbsp;<b style="color:#ffe066">●</b> Đã duyệt &nbsp;<b style="color:#ff3b4e">●</b> Không tìm thấy</p>`);
+$('#bHelp').onclick=()=>modal('Trợ giúp',`<p><span class="hand">👆</span> Chạm một nút để xem thông tin. Bấm nút <b>Kéo</b> trên thanh trên để đổi chế độ: <b>di chuyển cây</b> → <b>xoay cây</b> → <b>kéo từng nút</b>.<br>Hai ngón: chụm để thu/phóng, vặn để xoay cây.<br>🔒 Khóa cây: giữ cây tại chỗ; 🔓 mở khóa để cây bám theo hình giấy.</p><p><b style="color:#f5b92e">●</b> Nút gốc &nbsp;<b style="color:#19b6c9">●</b> Nút nhánh &nbsp;<b style="color:#2bd94a">●</b> Nút lá<br><b style="color:#ff7a1a">●</b> Đang duyệt &nbsp;<b style="color:#ffe066">●</b> Đã duyệt &nbsp;<b style="color:#ff3b4e">●</b> Không tìm thấy</p>`);
 document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>OP[b.dataset.op]());
 $('#bAna').onclick=OP.ana;
-$('#bMv').onclick=()=>{S.mv=S.mv=='pan'?'orbit':'pan';ui()};
+const MVL={pan:'✋ Di chuyển cây',orbit:'🔄 Xoay cây',node:'👆 Kéo từng nút'};
+$('#bMv').onclick=()=>modal('Chế độ kéo','<p>Chọn cách kéo trên màn hình:</p>'+Object.keys(MVL).map(k=>`<button class="bt ${S.mv==k?'or':''}" data-x="mv_${k}">${MVL[k]}${S.mv==k?' ✓':''}</button>`).join(''));
+Object.keys(MVL).forEach(k=>X['mv_'+k]=()=>{S.mv=k;close();ui()});
 $('#les').innerHTML=LES.map((l,i)=>`<option value="${i}">${l.n}</option>`).join('');
 $('#les').onchange=e=>{S.lesson=+e.target.value;S.sel=null;if(S.lesson==4)S.kind='in';norm();clear();refresh()};
 $('#vw').onchange=e=>{S.view=e.target.value;sync.w=0;refresh()};
@@ -267,12 +279,15 @@ $('#bPlay').onclick=()=>{if(S.run){stopT();return ui()}if(trav())startT()};
 $('#bNx').onclick=()=>{stopT();if(!S.steps.length||S.steps[0].t!='trav'){if(!trav())return}go(S.i+1)};
 $('#bPv').onclick=()=>{stopT();go(S.i-1)};
 $('#bLock').onclick=()=>lockFn?lockFn():toast('Chưa bật AR');
+const HID={info:0,code:0,tools:0,trav:0};
+const PT=(k,t)=>`<button class="pt" data-hide="${k}"><span class="a">—</span><span class="b">${t}</span></button>`;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-hide]');if(b){HID[b.dataset.hide]^=1;ui()}});
 const KS=[['pre','Duyệt trước (Pre-order)'],['in','Duyệt giữa (In-order)'],['post','Duyệt sau (Post-order)'],['rin','Duyệt ngược (Reverse inorder)']];
 function ui(){
   const L=LES[S.lesson],sc=document.body.classList.contains('scan'),st=S.steps[S.i];
   $('#st').textContent=sc?'ĐANG QUÉT':isLocked?'ĐÃ KHÓA':'ĐÃ HOẠT ĐỘNG';$('#st').style.color=sc||isLocked?'#ffc93c':'#3dff7a';$('#mt').textContent=L.m;
   const b=$('#bLock');b.textContent=isLocked?'🔓 MỞ KHÓA':'🔒 KHÓA CÂY';b.className=isLocked?'gr':'or';
-  $('#bMv').textContent=S.mv=='pan'?'✋ Kéo: dời cây':'🔄 Kéo: xoay 3D';
+  $('#bMv').textContent={pan:'✋ Kéo: di chuyển cây',orbit:'🔄 Kéo: xoay cây',node:'👆 Kéo: từng nút'}[S.mv];
   $('#les').value=S.lesson;$('#vw').value=S.view;
   document.querySelectorAll('[data-op]').forEach(x=>x.style.display=L.ops.split(' ').includes(x.dataset.op)?'':'none');
   $('#bAna').style.display=L.ops.includes('ana')?'':'none';
@@ -281,12 +296,13 @@ function ui(){
   $('#tt').textContent=st&&st.t=='path'?'ĐƯỜNG ĐI':'MÔ PHỎNG';$('#bPlay').textContent=S.run?'⏸':'▶';
   const ids=st?st.out:[];$('#out').innerHTML=ids.map((id,j)=>`<span class="${st.cur==id&&j==ids.length-1?'cu':''}">${esc(trunc(disp(byId(id))))}</span>`).join('')||'<small style="opacity:.6;font-weight:400">Kết quả sẽ hiện ở đây</small>';
   $('#nt').textContent=st?st.note:'';
-  const n=byId(S.sel);let h='<h4>THÔNG TIN NÚT</h4>';
+  const n=byId(S.sel);let h=PT('info','ℹ Thông tin')+'<h4>THÔNG TIN NÚT</h4>';
   if(!n)h+=root?'<div><i>Chạm vào một nút 3D để xem chi tiết</i></div>':'<div><i>Cây rỗng — dùng Thêm nút</i></div>';
   else{const p=par(n),k=(function g(t,k){return t===n?k:t?(g(t.l,2*k+1)??g(t.r,2*k+2)):null})(root,0);
     h+=`<div>Giá trị: ${esc(n.v)}</div>`+(S.lesson==3?`<div>Món: ${esc(n.m)} · ${n.p}k</div>`:S.lesson==5?`<div>Tên: ${esc(n.c)}<br>SĐT: ${esc(n.t)}</div>`:'')+
     `<div>Loại: ${n===root?'Nút gốc':!n.l&&!n.r?'Nút lá':'Nút nhánh'}</div><div>Mức: ${depth(n)}</div><div>Chiều cao: ${ht(n)}</div><div>Cha: ${p?esc(disp(p)):'—'}</div><div>Con trái: ${n.l?esc(disp(n.l)):'—'} · phải: ${n.r?esc(disp(n.r)):'—'}</div><div>Mảng: k=${k} → 2k+1=${2*k+1}, 2k+2=${2*k+2}</div>`}
   $('#info').innerHTML=h;drawCode();
+  ['info','code','tools','trav'].forEach(k=>$('#'+k).classList.toggle('mini',!!HID[k]));
   document.documentElement.style.setProperty('--ti',($('#top').offsetHeight+16)+'px');document.documentElement.style.setProperty('--tb',($('#trav').offsetHeight+16)+'px');
 }
 document.body.classList.add('scan');
@@ -457,7 +473,7 @@ async function readDigits(src,C,f,map){         // đọc số trong từng nút
   Object.keys(map).forEach(i=>{if(v[i]==null||dup.includes(String(v[i]))){while(used.has(nx))nx++;v[i]=nx;used.add(nx)}map[i].v=v[i]});
   clear();refresh();const ino=inord().map(n=>n.v);
   if(got<Math.ceil(n*.7)||dup.length){toast(got<Math.ceil(n*.7)?`⚠ Chỉ đọc được ${got}/${n} số — hãy kiểm tra và sửa`:'⚠ Có số đọc trùng nhau — hãy kiểm tra và sửa');OP.vals();return}
-  toast(`🔤 Đã đọc ${got}/${n} số`+(ino.every((x,i)=>!i||x>ino[i-1])&&n>1?' · cây này cũng là BST':'')+' — số sai thì bấm 🔢 Nhập số các nút')}
+  toast(`🔤 Đã đọc ${got}/${n} số`+(ino.every((x,i)=>!i||x>ino[i-1])&&n>1?' · cây này cũng là BST':'')+' — số sai thì bấm ⌨ Nhập cây (chọn "Chỉ đổi số các nút")')}
 
 async function loadLibs(){try{THREE=await import('three');stt('✅ Sẵn sàng');$('#bAR').disabled=false;$('#bDemo').disabled=false}catch(e){stt('❌ Không tải được Three.js ('+(e&&e.message||e)+'). Kiểm tra mạng rồi tải lại trang.')}}
 loadLibs();
@@ -626,7 +642,7 @@ async function startAR(useCam){
       lockFn=()=>toast('Chế độ không camera: cây luôn nằm giữa màn hình');rescanFn=()=>toast('Chế độ không camera không cần quét');
       say('');ui();sync();toast('Chế độ không cần camera — thử "⌨ Nhập cây", kéo nút, chơi game');
     }
-    // ---- chạm chọn nút · kéo NÚT để đặt vị trí · kéo chỗ trống để dời/xoay · chụm để thu phóng, vặn để xoay ----
+    // ---- chạm chọn nút · 3 chế độ kéo: di chuyển cây / xoay cây / kéo từng nút · chụm để thu phóng, vặn để xoay ----
     const ray=new THREE.Raycaster(),v2=new THREE.Vector2(),dom=renderer.domElement,pts=new Map(),pl=new THREE.Plane(),pt=new THREE.Vector3(),nw=new THREE.Vector3();
     let moved=0,pd=0,pa=0,dragId=null,dragging=false;
     const ndc=e=>{const rc=dom.getBoundingClientRect();v2.set((e.clientX-rc.left)/rc.width*2-1,-((e.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(v2,cam)};
@@ -636,12 +652,12 @@ async function startAR(useCam){
     const dist=()=>{const q=[...pts.values()];return Math.hypot(q[0][0]-q[1][0],q[0][1]-q[1][1])};
     const ang=()=>{const q=[...pts.values()];return Math.atan2(q[1][1]-q[0][1],q[1][0]-q[0][0])};
     dom.addEventListener('pointerdown',e=>{try{dom.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,[e.clientX,e.clientY]);moved=0;dragging=false;
-      if(pts.size==1)dragId=rig.visible&&!GM.on&&S.view!='arr'?pick(e):null;else{dragId=null;pd=dist();pa=ang()}});
+      if(pts.size==1)dragId=rig.visible&&!GM.on&&S.view!='arr'&&S.mv=='node'?pick(e):null;else{dragId=null;pd=dist();pa=ang()}});
     dom.addEventListener('pointermove',e=>{const p=pts.get(e.pointerId);if(!p)return;const dx=e.clientX-p[0],dy=e.clientY-p[1];p[0]=e.clientX;p[1]=e.clientY;
       if(pts.size==1){moved+=Math.abs(dx)+Math.abs(dy);
         if(dragId!=null){if(moved>6){dragging=true;dragTo(e,dragId)}}
         else if(S.mv=='pan'){S.px+=dx;S.py+=dy}
-        else{S.yaw+=dx*.01;S.pitch=Math.max(-.6,Math.min(.6,S.pitch+dy*.004))}}
+        else if(S.mv=='orbit'){S.yaw+=dx*.01;S.pitch=Math.max(-.6,Math.min(.6,S.pitch+dy*.004))}}
       else if(pts.size==2){const d=dist(),a=ang();let da=a-pa;if(da>Math.PI)da-=2*Math.PI;if(da<-Math.PI)da+=2*Math.PI;
         if(pd)S.zoom=Math.max(.4,Math.min(3,S.zoom*d/pd));S.roll+=da;pd=d;pa=a;S.px+=dx/2;S.py+=dy/2;moved=99}});
     const up=e=>{if(pts.size==1&&e.type=='pointerup'&&rig.visible){
