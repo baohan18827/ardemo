@@ -25,7 +25,18 @@ button.gr{background:#1d8c52;border-color:#5be39a;font-weight:800}
 #tools .tgrp{font-size:11px;font-weight:700;letter-spacing:.03em;opacity:.65;margin:6px 2px 0;white-space:nowrap;flex:none;align-self:flex-start}
 #tools>.tgrp:first-of-type{margin-top:0}
 #tools .tgrp{cursor:pointer;user-select:none;opacity:.85;padding:3px 2px}
-#tools[data-shut~="edit"] [data-grp="edit"],#tools[data-shut~="view"] [data-grp="view"],#tools[data-shut~="bst"] [data-grp="bst"]{display:none!important}
+@media(min-width:761px){#tools[data-shut~="edit"] [data-grp="edit"],#tools[data-shut~="view"] [data-grp="view"],#tools[data-shut~="bst"] [data-grp="bst"]{display:none!important}}
+/* điện thoại: thanh cuộn ngang, không gập nhóm, không nhãn nhóm; khung "đang chọn" gọn trên một dòng */
+#tools button.dim{opacity:.55}
+#bMenu{display:none}
+@media(max-width:760px){#tools>button[data-op],#tools .ur{display:none!important}#bMenu{display:inline-block}
+ #tools .tgrp{display:none!important}
+ #tools #nsel{display:flex;align-items:center;gap:6px;flex:none;margin:0;padding:3px 6px}
+ #tools #nsel[hidden]{display:none}
+ #tools #nselT{margin:0;white-space:nowrap}
+ #tools #nsel .nrow{flex:none}
+ #tools #nsel .nrow button{flex:none;padding:4px 8px}
+ #tools .ur{flex:none}#tools .ur button{flex:none;padding:4px 10px}}
 #nsel{border:1px solid var(--l);border-radius:10px;padding:6px;margin-bottom:4px}
 #nsel[hidden]{display:none}
 #nselT{font-size:12px;margin-bottom:4px}
@@ -2775,7 +2786,7 @@ if(tl){const b=document.createElement('button');b.dataset.op='bst';b.dataset.grp
 /* Cây thường: ẩn nhóm BST/AVL (chỉ hiện khi cây rỗng hoặc đúng là BST); nút BST ghi rõ trạng thái */
 const _ui=ui;ui=function(){_ui();
   const okB=isBst(),run=typeof AV!='undefined'&&AV.on;
-  ['bst','avl','avlcmp'].forEach(o=>{const x=document.querySelector('[data-op="'+o+'"]');if(x&&!x.hidden&&!okB&&!(run&&o=='avl'))x.hidden=true});
+  ['bst','avl','avlcmp'].forEach(o=>{const x=document.querySelector('[data-op="'+o+'"]');if(x)x.classList.toggle('dim',!okB&&!run)});   // cây thường: nút BST vẫn hiện nhưng mờ, bấm vào sẽ báo lý do
   document.querySelectorAll('#tools .tgrp').forEach(l=>{let n=l.nextElementSibling,any=false;while(n&&!n.classList.contains('tgrp')){if((n.matches('[data-op]')&&!n.hidden)||n.querySelector('[data-op]:not([hidden])'))any=true;n=n.nextElementSibling}l.hidden=!any});
   const bt=document.querySelector('[data-op="bst"]');
   if(bt){bt.innerHTML='🌳 Chèn giá trị';bt.title='Chèn một giá trị vào BST: nhỏ hơn đi trái, lớn hơn đi phải, đến chỗ trống thì chèn'}};
@@ -2790,6 +2801,20 @@ const _ui=ui;ui=function(){_ui();
   if(key===last)return;last=key;box.hidden=!n;if(n)tt.innerHTML='Đang chọn nút <b>'+esc(n.v)+'</b>'};
  box.addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(b)OP[b.dataset.n]()});
  setInterval(sync,250);sync()})();
+/* điện thoại: thanh công cụ chỉ còn nút "☰ Chức năng" (+ khung nút đang chọn); bấm vào mở bảng nút to, chia nhóm */
+(()=>{const tl=document.getElementById('tools'),ns=document.getElementById('nsel');if(!tl||!ns)return;
+ const mb=document.createElement('button');mb.id='bMenu';mb.textContent='☰ Chức năng';tl.insertBefore(mb,ns.nextSibling);
+ mb.onclick=()=>{
+  const bs=[...tl.querySelectorAll('button[data-op]')].filter(b=>!b.hidden),G={'':'Chính',edit:'Sửa cây',bst:'Cây BST',view:'Xem cây'},done=[];let h='';
+  ['','edit','bst','view'].forEach(g=>{const l=bs.filter(b=>((b.closest('[data-grp]')||{dataset:{}}).dataset.grp||'')==g);if(!l.length)return;
+   h+=(g?'<h4>'+G[g]+'</h4>':'')+'<div class="tcg">'+l.map(b=>{done.push(b);return '<button class="bt" data-t="'+(done.length-1)+'">'+esc(b.textContent.trim())+'</button>'}).join('')+'</div>'});
+  modal('Chức năng',h);
+  $('#mbd').onclick=e=>{const x=e.target.closest('[data-t]');if(!x)return;close();done[+x.dataset.t].click()}};
+})();
+/* cây thường bấm nút BST / AVL: báo không phải cây BST, không chạy */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-op="bst"],[data-op="avl"],[data-op="avlcmp"]');if(!b||isBst()||(typeof AV!='undefined'&&AV.on))return;
+  e.stopImmediatePropagation();e.preventDefault();
+  const v=bad(root);toast('⚠ Cây này không phải cây BST'+(v&&v.v!==undefined?' (nút '+v.v+' không đúng luật trái nhỏ hơn, phải lớn hơn)':'')+', nên chưa dùng được chức năng này.')},true);
 try{ui()}catch(e){}
 })();
 </script>
