@@ -28,7 +28,10 @@ button.gr{background:#1d8c52;border-color:#5be39a;font-weight:800}
 @media(min-width:761px){#tools[data-shut~="edit"] [data-grp="edit"],#tools[data-shut~="view"] [data-grp="view"],#tools[data-shut~="bst"] [data-grp="bst"]{display:none!important}}
 /* điện thoại: thanh cuộn ngang, không gập nhóm, không nhãn nhóm; khung "đang chọn" gọn trên một dòng */
 #tools button.dim{opacity:.55}
-#tools{width:auto!important}
+#tools{width:auto!important;right:auto!important;flex-direction:column!important;overflow:visible!important;max-width:calc(100vw - 16px)}
+#trav .ctl{display:flex;align-items:center;gap:6px;flex:none}
+#tbar{align-self:stretch}#bMenu{flex:1}
+@media(min-width:761px){#trav{left:290px!important}}   /* chừa chỗ cho thanh công cụ rộng hơn trước */
 #tools>button[data-op],#tools .tgrp,#tools>.cx{display:none!important}
 #tbar{display:flex;gap:6px;flex:none}
 #tbar button[data-op]{min-width:42px;padding:4px 8px}
@@ -538,8 +541,8 @@ html[data-theme="light"] #trav #bNx{background:#2fb344;border-color:#8ce99a}
 <div id="tools" class="gl">
 <button id="tg" class="cx tgl" title="Thu gọn / mở rộng thanh công cụ"></button><div id="nsel" hidden><div id="nselT"></div><div class="nrow"><button data-n="add">＋ Thêm con</button><button data-n="upd">✎ Sửa</button><button data-n="del">－ Xóa</button></div></div><div id="tbar"><button id="bMenu">☰ Chức năng</button><button data-op="undo" title="Hoàn tác thao tác trước (Ctrl+Z)">↶</button><button data-op="redo" title="Làm lại thao tác vừa hoàn tác (Ctrl+Y)">↷</button><button data-op="lay" title="Đưa các nút và góc nhìn về vị trí ban đầu">↺</button></div><button data-op="search" title="Tìm một giá trị trên cây và xem đường đi">🔍 Tìm kiếm</button><button data-op="sort" title="Sắp xếp (phần này đang được bổ sung)">↕ Sắp xếp</button><div class="tgrp" data-g="edit"></div><button data-grp="edit" data-op="ad" title="Thêm nút mới hoặc xóa nút đang chọn (cùng một hộp)">＋/－ Thêm / Xóa</button><button data-grp="edit" data-op="upd" title="Đổi giá trị của nút đang chọn">✎ Cập nhật</button><button data-grp="edit" data-op="inp" title="Tạo cây mới, chỉnh sửa giá trị các nút, tạo cây mẫu, khôi phục cây ban đầu">⌨ Tạo / sửa cây</button><div class="tgrp" data-g="bst"></div><button data-grp="bst" data-op="avl" title="Kiểm tra cây có phải AVL không, rồi cân bằng bằng quay đơn / quay kép — xem từng bước">⚖ Cân bằng AVL</button><button data-grp="bst" data-op="avlcmp" title="So sánh cấu trúc cây trước và sau khi cân bằng AVL">↔ So sánh AVL</button><div class="tgrp" data-g="view"></div><button data-grp="view" data-op="img" title="Lưu ảnh cây thành tệp PNG để đưa vào bài tập, báo cáo">💾 Lưu ảnh cây</button><button data-op="game" title="Chơi game và làm trắc nghiệm trên chính cây này">🎮 Chọn trò chơi</button></div>
 <div id="trav" class="gl"><div class="r"><b id="tt"></b><select id="tk" title="Chọn kiểu duyệt cây"></select><span class="sp"></span>
-<button id="bPv" title="Lùi lại một bước">⏮</button><button id="bPlay" title="Phát / tạm dừng mô phỏng">▶</button><button id="bNx" title="Chạy từng bước: mỗi lần bấm xem đúng một bước">Bước tiếp ⏭</button>
-<select id="spd" title="Tốc độ phát"><option value="0.25">0.25x · rất chậm</option><option value="0.5" selected>0.5x · chậm</option><option value="1">1x</option><option value="1.5">1.5x</option><option value="2">2x · nhanh</option></select></div>
+<span class="ctl"><button id="bPv" title="Lùi lại một bước">⏮</button><button id="bPlay" title="Phát / tạm dừng mô phỏng">▶</button><button id="bNx" title="Chạy từng bước: mỗi lần bấm xem đúng một bước">Bước tiếp ⏭</button>
+<select id="spd" title="Tốc độ phát"><option value="0.25">0.25x</option><option value="0.5" selected>0.5x</option><option value="1">1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select></span></div>
 <div id="out"></div><div id="nt"></div></div>
 <div id="mo"><div class="gl"><h3 id="mh"></h3><div id="mbd"></div><div class="b"><button id="mx">Đóng</button><button id="mok" class="or"></button></div></div></div>
 <div id="coach" class="gl"><span id="ct"></span><button id="cs">Bỏ qua</button></div><div id="sweep"></div><div id="hud"></div><div id="toast" role="status" aria-live="polite"></div><div id="err" role="alert"></div><div id="load"></div>
@@ -720,9 +723,9 @@ function bstRemove(n){
   if(!n.l&&!n.r){setP(null);return 'Trường hợp 1: đã xóa nút lá '+n.v+' (con trỏ của cha đặt về NULL)'}
   if(!n.l||!n.r){const c=n.l||n.r;setP(c);return 'Trường hợp 2: con '+c.v+' nối thẳng lên cha, thay vị trí nút '+n.v}
   const s=succ(n),ps=par(s),old=n.v;
-  if(ps===n)n.r=s.r;else ps.l=s.r;          // gỡ nút kế nhiệm khỏi vị trí cũ (nó không có con trái, chỉ có thể có con phải)
+  if(ps===n)n.r=s.r;else ps.l=s.r;          // gỡ nút trái nhất của cây con phải khỏi vị trí cũ (nó không có con trái, chỉ có thể có con phải)
   n.v=s.v;
-  return 'Trường hợp 3: nút kế nhiệm '+s.v+' lên thay vị trí nút '+old}
+  return 'Trường hợp 3: nút trái nhất của cây con phải ('+s.v+') lên thay vị trí nút '+old}
 
 // ================= TẠO CÂY ĐỘC LẬP (không dựa vào cây đang có) =================
 function bstInsert(t,v){const m=mk(v);if(!t)return m;let c=t;for(;;){const d=cmp(v,c.v)<0?'l':'r';if(!c[d]){c[d]=m;return t}c=c[d]}}   // khóa trùng: v ≥ nút → sang PHẢI
@@ -772,7 +775,7 @@ const OP={
    if(sn){const x=document.createElement('button');x.id='mxd';x.className='bad';x.textContent='－ Xóa nút '+sn.v;x.onclick=()=>{close();OP.del()};$('#mx').parentNode.insertBefore(x,$('#mx'))}},
  del(){const n=byId(S.sel);if(!n)return hint('👆 Chưa chọn nút: hãy chạm vào nút cần xóa trên cây (các nút đang nhấp nháy), rồi bấm lại Xóa',1);
    const c=!n.l&&!n.r?'<b>Trường hợp 1 — nút lá (không có con):</b> xóa trực tiếp, con trỏ của nút cha được đặt về NULL.'
-     :n.l&&n.r?'<b>Trường hợp 3 — nút có 2 con:</b> chọn nút <b>kế nhiệm</b> = nút trái nhất của cây con phải (giá trị nhỏ nhất bên phải) = <b>'+esc(succ(n).v)+'</b>. Nút này lên thay vị trí của <b>'+esc(n.v)+'</b>, rồi được gỡ khỏi vị trí cũ.'
+     :n.l&&n.r?'<b>Trường hợp 3 — nút có 2 con:</b> chọn <b>nút trái nhất của cây con phải</b> (giá trị nhỏ nhất bên phải) = <b>'+esc(succ(n).v)+'</b>. Nút này lên thay vị trí của <b>'+esc(n.v)+'</b>, rồi được gỡ khỏi vị trí cũ.'
      :'<b>Trường hợp 2 — nút có 1 con:</b> con <b>'+esc((n.l||n.r).v)+'</b> nối thẳng lên cha của nút '+esc(n.v)+', thay thế vị trí nút bị xóa.';
    modal('Xóa nút '+disp(n),'<p class="tm">'+c+'</p>',()=>{const m=bstRemove(n);S.sel=null;clear();beep(220);toast(m)},'Xóa')},
 
@@ -1121,12 +1124,12 @@ G2.push(
    return Qm('dut',1,'Theo '+NAM[k]+', nút được thăm '+(fst?'đầu tiên':'cuối cùng')+' là nút nào?',x.v,vl(),NAM[k]+': '+jn(a.map(n=>n.v))+' → nút '+(fst?'đầu tiên':'cuối cùng')+' là '+x.v+'.',{hint:NAM[k]+': '+RU[k]+'.',run:runK(k,a.map(n=>n.id))})}],
  ['bst',2,()=>{const v=sv(root,'in'),ok=v.every((x,i)=>!i||cmp(x,v[i-1])>0);
    return Qb('bst',2,'Duyệt giữa (Inorder) của cây này có cho dãy tăng dần (không có hai giá trị bằng nhau) không?',ok,'Duyệt giữa: '+jn(v)+(ok?' — tăng dần nên đây là BST.':' — không tăng dần nên đây không phải BST.'),{hint:'Hãy tự duyệt giữa (trái – nút – phải) rồi so sánh các số liền kề.',run:()=>setSteps(tSteps('in'),'in')})}],
- ['bst',2,()=>{const e=rnE(ND()),g=(e.n.l?1:0)+(e.n.r?1:0),C=['Nút lá: xóa trực tiếp','Có 1 con: con đi lên thế chỗ','Có 2 con: thay bằng nút kế nhiệm'];
+ ['bst',2,()=>{const e=rnE(ND()),g=(e.n.l?1:0)+(e.n.r?1:0),C=['Nút lá: xóa trực tiếp','Có 1 con: con đi lên thế chỗ','Có 2 con: thay bằng nút trái nhất của cây con phải'];
    return Qm('bst',2,'Muốn xóa nút '+e.n.v+' khỏi BST, ta rơi vào trường hợp nào?',C[g],C,'Nút '+e.n.v+' có '+g+' con → '+C[g].toLowerCase()+'.',{hint:'Đếm số con của nút cần xóa: 0, 1 hay 2 con?',hl:[e.n.id],run:()=>show([e.n.id],'Nút cần xóa')})}],
  ['bst',2,()=>{if(bad(root)||!uniq())return null;const t=rnE(ND()).n,p=pathTo(t),r=p.length;
    return Qm('bst',2,'Tìm khoá '+t.v+' trong BST bắt đầu từ gốc: cần so sánh với bao nhiêu nút (tính cả nút chứa khoá)?',r,[r+1,r+2,r-1,ND().length,r+3],'Đường tìm: '+p.map(dv).join(' → ')+' → '+r+' lần so sánh.',{hint:'Mỗi nút trên đường từ gốc đến '+t.v+' là một lần so sánh.',run:()=>show(p,'Đường tìm '+t.v)})}],
  ['bst',3,()=>{if(bad(root)||!uniq())return null;const io=inord();if(io.length<3)return null;const x=rnE(io.slice(0,-1)),y=io[io.indexOf(x)+1];
-   return Qm('bst',3,'Nút kế nhiệm của '+x.v+' (khoá nhỏ nhất lớn hơn '+x.v+') trong BST là nút nào?',y.v,vl(),'Kế nhiệm là nút đứng ngay sau '+x.v+' trong duyệt giữa: '+jn(io.map(n=>n.v))+' → '+y.v+'.',{hint:'Kế nhiệm của một nút là nút liền sau nó trong dãy duyệt giữa (tăng dần).',hl:[x.id],run:()=>show([x.id,y.id],'Nút và nút kế nhiệm')})}],
+   return Qm('bst',3,'Trong BST, nút có khoá nhỏ nhất lớn hơn '+x.v+' là nút nào?',y.v,vl(),'Đó là nút đứng ngay sau '+x.v+' trong duyệt giữa: '+jn(io.map(n=>n.v))+' → '+y.v+'.',{hint:'Nút có khoá nhỏ nhất lớn hơn x là nút liền sau x trong dãy duyệt giữa (tăng dần).',hl:[x.id],run:()=>show([x.id,y.id],'Nút và nút liền sau nó')})}],
  ['vd',3,()=>{if(bad(root)||!allNum())return null;const have=new Set(vl());let v;for(let i=0;i<40&&(!v||have.has(v));i++)v=1+(Math.random()*45|0);if(have.has(v))return null;const t=insB(clone(root),v),h=hE(t),h0=hE(root);
    return Qm('vd',3,'Chèn khoá '+v+' vào BST. Chiều cao của cây sau khi chèn là bao nhiêu?',h,[h0,h+1,h+2,h-1],'Chèn '+v+' theo quy tắc BST, cây có chiều cao '+h+(h>h0?' (tăng so với '+h0+').':' (không đổi).'),{hint:'Tìm chỗ chèn: nhỏ hơn đi trái, lớn hơn đi phải. Nút mới ở mức nào thì chiều cao cây là lớn hơn giữa chiều cao cũ và mức đó.'})}]
 );
